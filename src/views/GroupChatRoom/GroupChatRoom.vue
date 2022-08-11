@@ -4,35 +4,51 @@ import { io } from "socket.io-client";
 import { MessageStandard } from "./standard";
 
 const socket = io("http://localhost:3000");
-let socketId = "";
-let text = ref("");
-let username = ref("游客");
-let popColor = ref("#E9ECED");
-let avatar = ref("https://img2.baidu.com/it/u=1122189152,3409253069&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=499");
-let msgList = ref<Array<MessageStandard>>([]);
-const resetColors = ["#009688", "#1E9FFF", "#FFB800", "#FF5722", "#5FB878"];
-let messageListDom = ref<any>(null);
 const methods: any = {};
+const resetColors = ["#009688", "#1E9FFF", "#FFB800", "#FF5722", "#5FB878"];
+
+let socketId = ""; // socket id
+let text = ref(""); // 消息编辑框的文本
+let username = ref("游客"); // 用户名
+let popColor = ref("#E9ECED"); // 气泡颜色
+let avatar = ref("https://img2.baidu.com/it/u=1122189152,3409253069&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=499"); // 头像地址
+let msgList = ref<Array<MessageStandard>>([]); // 消息数组
+let msgListDom = ref<any>(null); // 消息数组 DOM
 
 onMounted(() => {
+  /**
+   * socket 连接服务器。
+   */
   socket.on("connect", () => {
     socketId = socket.id;
   });
 
-  socket.on("transfer", e => {
-    msgList.value.push(e);
-    messageListDom.value.scrollTop = messageListDom.value.scrollHeight;
-  });
-
+  /**
+   * 发送文本信息的点击事件，socket 发送事件 send-text，服务器监听该事件。
+   * 服务器监听到该事件之后，通过广播把数据转发给其他人，除了自己。
+   */
   methods.sendText = () => {
     let standard = new MessageStandard(username.value, text.value, avatar.value, popColor.value, "others");
-    socket.emit("to-server", standard);
+    socket.emit("send-text", standard);
     text.value = "";
     standard.type = "self";
     msgList.value.push(standard);
-    messageListDom.value.scrollTop = messageListDom.value.scrollHeight;
+    msgListDom.value.scrollTop = msgListDom.value.scrollHeight;
   };
 
+  /**
+   * 接收群聊广播信息，socket 监听 broadcast 事件。
+   */
+  socket.on("broadcast", e => {
+    msgList.value.push(e);
+    msgListDom.value.scrollTop = msgListDom.value.scrollHeight;
+  });
+
+  /**
+   * 改变 div 元素的文本，并吧 innerText 赋值给 text 变量。
+   * 与此同时，div 使用 v-text 指令更新文本信息。
+   * @param e InputEvent
+   */
   methods.changeDivText = (e: any): void => {
     text.value = e.target.innerText;
   };
@@ -41,7 +57,8 @@ onMounted(() => {
 
 <template>
   <div class="chatroom">
-    <div class="wrap">
+    <div class="wrapper">
+      <!-- 配置信息：用户名、头像、气泡颜色 -->
       <div class="config">
         <div class="item username">
           <div class="label">用户名</div>
@@ -56,30 +73,37 @@ onMounted(() => {
           <lay-color-picker v-model="popColor" :preset="resetColors"></lay-color-picker>
         </div>
       </div>
+      <!-- 聊天界面主内容区域 -->
       <div class="content">
-        <div class="identifier">Your identifier: {{ socketId }}</div>
-        <div class="message-list" ref="messageListDom">
+        <!-- socket 唯一标识符 -->
+        <div class="socket-id">Your identifier: {{ socketId }}</div>
+        <!-- 信息列表容器 -->
+        <div class="msg-list" ref="msgListDom">
+          <!-- 信息列表其中的项 -->
           <div class="msg-item" :class="msg.type" v-for="(msg, key) in msgList" :key="key">
             <template v-if="msg.type === 'self'">
+              <!-- 别人的消息 -->
               <div class="left">
                 <div class="msg-holder">{{ msg.username }}</div>
-                <div class="msg-popup" :style="{'--pop-color': msg.popColor}">{{ msg.text }}</div>
+                <div class="msg-pop" :style="{'--pop-color': msg.popColor}">{{ msg.text }}</div>
               </div>
               <div class="right"><img class="avatar" :src="msg.avatar" alt="oops!" /></div>
             </template>
             <template v-else>
+              <!-- 自己的消息 -->
               <div class="left"><img class="avatar" :src="msg.avatar" alt="oops!" /></div>
               <div class="right">
                 <div class="msg-holder">{{ msg.username }}</div>
-                <div class="msg-popup" :style="{'--pop-color': msg.popColor}">{{ msg.text }}</div>
+                <div class="msg-pop" :style="{'--pop-color': msg.popColor}">{{ msg.text }}</div>
               </div>
             </template>
           </div>
         </div>
-        <div class="chat-menu">
-          <div class="send-menu">
-            <div contenteditable="true" class="msg-input" v-text="text" @input="methods.changeDivText"></div>
-            <el-button class="send-btn" @click="methods.sendText">发送</el-button>
+        <!-- 聊天菜单：发送按钮和信息编辑区域 -->
+        <div class="menus">
+          <div class="sending">
+            <div class="msg-textarea" contenteditable="true" v-text="text" @input="methods.changeDivText"></div>
+            <el-button class="sending-btn" @click="methods.sendText">发送</el-button>
           </div>
         </div>
       </div>
@@ -96,7 +120,7 @@ onMounted(() => {
   align-items: center;
 }
 
-.wrap {
+.wrapper {
   background-color: white;
   color: #4D4949;
   width: 800px;
@@ -137,7 +161,7 @@ onMounted(() => {
   border-radius: 4px;
 }
 
-.identifier {
+.socket-id {
   display: flex;
   align-items: center;
   align-content: center;
@@ -146,32 +170,32 @@ onMounted(() => {
   background-color: #F9F9F9;
 }
 
-.message-list {
+.msg-list {
   width: 100%;
   height: 80%;
   overflow-x: auto;
 }
 
-.message-list .msg-item {
+.msg-list .msg-item {
   display: flex;
   margin-top: 20px;
 }
 
-.message-list .self {
+.msg-list .self {
   justify-content: flex-end;
 }
 
-.message-list .others.msg-item {
+.msg-list .others.msg-item {
   padding-right: 50px;
   padding-left: 20px;
 }
 
-.message-list .self.msg-item {
+.msg-list .self.msg-item {
   padding-right: 20px;
   padding-left: 50px;
 }
 
-.message-list .others .left {
+.msg-list .others .left {
   margin-right: 20px;
   width: 12%;
   display: flex;
@@ -180,7 +204,7 @@ onMounted(() => {
   align-items: flex-start;
 }
 
-.message-list .self .right {
+.msg-list .self .right {
   margin-left: 20px;
   width: 12%;
   display: flex;
@@ -189,11 +213,11 @@ onMounted(() => {
   align-items: flex-start;
 }
 
-.message-list .self .left .msg-holder {
+.msg-list .self .left .msg-holder {
   text-align: right;
 }
 
-.message-list .msg-popup {
+.msg-list .msg-pop {
   width: auto;
   margin-top: 5px;
   background-color: var(--pop-color);
@@ -205,7 +229,7 @@ onMounted(() => {
   position: relative;
 }
 
-.message-list .others .msg-popup::before {
+.msg-list .others .msg-pop::before {
   position: absolute;
   content: "";
   top: 10px;
@@ -215,7 +239,7 @@ onMounted(() => {
   border-bottom: 10px solid transparent;
 }
 
-.message-list .self .msg-popup::after {
+.msg-list .self .msg-pop::after {
   position: absolute;
   content: "";
   top: 10px;
@@ -225,18 +249,18 @@ onMounted(() => {
   border-bottom: 10px solid transparent;
 }
 
-.message-list .avatar {
-  width: 55px;
-  height: 55px;
+.msg-list .avatar {
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   margin-top: 10px;
 }
 
-.chat-menu {
+.menus {
   height: 13%;
 }
 
-.send-menu {
+.sending {
   width: 100%;
   height: 100%;
   display: flex;
@@ -245,7 +269,7 @@ onMounted(() => {
   align-items: center;
 }
 
-.send-menu .msg-input {
+.sending .msg-textarea {
   box-sizing: border-box;
   padding: 4px;
   outline: none;
@@ -258,16 +282,16 @@ onMounted(() => {
   transition: 0.6s;
 }
 
-.send-menu .msg-input:hover {
+.sending .msg-textarea:hover {
   border-color: #D0CBCB;
 }
 
-.send-menu .msg-input:focus {
+.sending .msg-textarea:focus {
   transition: 0.6s;
   border-color: #409EFF;
 }
 
-.send-menu .send-btn {
+.sending .sending-btn {
   height: 100%;
 }
 </style>
