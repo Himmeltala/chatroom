@@ -1,36 +1,42 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { io } from "socket.io-client";
 import { MessageStandard } from "./standard";
 
 const socket = io("http://localhost:3000");
 let socketId = "";
-
-socket.on("connect", () => {
-  socketId = socket.id;
-});
-
-socket.on("transfer", e => {
-  msgList.value.push(e);
-});
-
 let text = ref("");
 let username = ref("游客");
-let popColor = ref("");
+let popColor = ref("#E9ECED");
 let avatar = ref("https://img2.baidu.com/it/u=1122189152,3409253069&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=499");
 let msgList = ref<Array<MessageStandard>>([]);
+const resetColors = ["#009688", "#1E9FFF", "#FFB800", "#FF5722", "#5FB878"];
+let messageListDom = ref<any>(null);
+const methods: any = {};
 
-function sendText(): void {
-  let standard = new MessageStandard(username.value, text.value, avatar.value, popColor.value, "others");
-  socket.emit("to-server", standard);
-  text.value = "";
-  standard.type = "self";
-  msgList.value.push(standard);
-}
+onMounted(() => {
+  socket.on("connect", () => {
+    socketId = socket.id;
+  });
 
-function changeDivText(e: any): void {
-  text.value = e.target.innerText;
-}
+  socket.on("transfer", e => {
+    msgList.value.push(e);
+    messageListDom.value.scrollTop = messageListDom.value.scrollHeight;
+  });
+
+  methods.sendText = () => {
+    let standard = new MessageStandard(username.value, text.value, avatar.value, popColor.value, "others");
+    socket.emit("to-server", standard);
+    text.value = "";
+    standard.type = "self";
+    msgList.value.push(standard);
+    messageListDom.value.scrollTop = messageListDom.value.scrollHeight;
+  };
+
+  methods.changeDivText = (e: any): void => {
+    text.value = e.target.innerText;
+  };
+});
 </script>
 
 <template>
@@ -47,11 +53,12 @@ function changeDivText(e: any): void {
         </div>
         <div class="item popup-color">
           <div class="label">气泡色</div>
+          <lay-color-picker v-model="popColor" :preset="resetColors"></lay-color-picker>
         </div>
       </div>
       <div class="content">
         <div class="identifier">Your identifier: {{ socketId }}</div>
-        <div class="message-list">
+        <div class="message-list" ref="messageListDom">
           <div class="msg-item" :class="msg.type" v-for="(msg, key) in msgList" :key="key">
             <template v-if="msg.type === 'self'">
               <div class="left">
@@ -64,15 +71,15 @@ function changeDivText(e: any): void {
               <div class="left"><img class="avatar" :src="msg.avatar" alt="oops!" /></div>
               <div class="right">
                 <div class="msg-holder">{{ msg.username }}</div>
-                <div class="msg-popup" :style="{'--popup-color': msg.popColor}">{{ msg.text }}</div>
+                <div class="msg-popup" :style="{'--pop-color': msg.popColor}">{{ msg.text }}</div>
               </div>
             </template>
           </div>
         </div>
         <div class="chat-menu">
           <div class="send-menu">
-            <div contenteditable="true" class="msg-input" @input="changeDivText"></div>
-            <el-button class="send-btn" @click="sendText">发送</el-button>
+            <div contenteditable="true" class="msg-input" v-text="text" @input="methods.changeDivText"></div>
+            <el-button class="send-btn" @click="methods.sendText">发送</el-button>
           </div>
         </div>
       </div>
@@ -182,6 +189,10 @@ function changeDivText(e: any): void {
   align-items: flex-start;
 }
 
+.message-list .self .left .msg-holder {
+  text-align: right;
+}
+
 .message-list .msg-popup {
   width: auto;
   margin-top: 5px;
@@ -210,7 +221,7 @@ function changeDivText(e: any): void {
   top: 10px;
   right: -10px;
   border-top: 2px solid transparent;
-  border-left: 12px solid var(--popup-color);
+  border-left: 12px solid var(--pop-color);
   border-bottom: 10px solid transparent;
 }
 
