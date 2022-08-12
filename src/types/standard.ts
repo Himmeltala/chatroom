@@ -1,4 +1,4 @@
-export class MessageStandard {
+export class Message {
   public username: string;
   public text: string;
   public avatar: string;
@@ -12,4 +12,10 @@ export class MessageStandard {
     this.popColor = popColor;
     this.type = type;
   }
+}
+
+export interface ConfigMenusData {
+  username: string,
+  popColor: string,
+  avatar: string
 }

@@ -7,6 +7,8 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
+    BottomMenus: typeof import('./src/components/BottomMenus.vue')['default']
+    ConfigMenus: typeof import('./src/components/ConfigMenus.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElInput: typeof import('element-plus/es')['ElInput']
     LayColorPicker: typeof import('@layui/layui-vue')['LayColorPicker']

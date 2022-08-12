@@ -3,7 +3,11 @@ import { createRouter, createWebHashHistory } from "vue-router";
 const routes = [
   {
     path: "/group",
-    component: () => import("./views/GroupChatRoom/GroupChatRoom.vue")
+    component: () => import("./components/ConfigMenus.vue")
+  },
+  {
+    path: "/single",
+    component: () => import("./components/BottomMenus.vue")
   }
 ];
 
