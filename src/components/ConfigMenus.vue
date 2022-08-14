@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch, defineEmits, defineProps, reactive } from "vue";
+import { watch, reactive } from "vue";
 import { ConfigMenusData } from "../types/standard";
 
 const resets = ["#009688", "#1E9FFF", "#FFB800", "#FF5722", "#5FB878"];
@@ -28,7 +28,7 @@ defineProps({
     type: String,
     default: "30%"
   }
-})
+});
 </script>
 
 <template>

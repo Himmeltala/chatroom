@@ -18,18 +18,18 @@ onMounted(() => {
     socketId.value = socket.id;
   });
 
+  socket.on("broadcast", (e) => {
+    msgList.value.push(e);
+    msgListDOM.value.scrollTop = msgListDOM.value.scrollHeight;
+  });
+
   methods.onSendText = (text: string) => {
     let message = new Message(configs.value.username, text, configs.value.avatar, configs.value.popColor, "others");
-    socket.emit("send-text", message);
+    socket.emit("sending", message);
     message.type = "self";
     msgList.value.push(message);
     msgListDOM.value.scrollTop = msgListDOM.value.scrollHeight;
   };
-
-  socket.on("broadcast", e => {
-    msgList.value.push(e);
-    msgListDOM.value.scrollTop = msgListDOM.value.scrollHeight;
-  });
 });
 
 function onConfigMenusDataChange(e: any) {

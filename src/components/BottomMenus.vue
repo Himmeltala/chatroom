@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, defineEmits, defineProps } from "vue";
+import { ref } from "vue";
 
 let text = ref("");
 
@@ -19,7 +19,7 @@ const emits = defineEmits<{
  * 函数接收由 InputEvent 参数，获得监听的元素中的 innerText。
  * @param e InputEvent
  */
-function changeText(e: any): void {
+function changeText(e: any) {
   text.value = e.target.innerText;
 }
 
