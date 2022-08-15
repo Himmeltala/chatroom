@@ -1,9 +1,19 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useStorage } from "@vueuse/core";
 import { checkUser } from "../apis/userApi";
 import { ElMessage } from "element-plus";
 
+const router = useRouter();
+
 let data = ref({ username: "", password: "" });
+
+/**
+ * 查询 storage 是否存在用户的id，不存在说明没有登陆，没有登陆就不跳转到 /chat。
+ */
+onMounted(() => {
+});
 
 /**
  * 检测用户名或密码是否符合如下规范：
@@ -15,9 +25,9 @@ let data = ref({ username: "", password: "" });
  * @param password 密码
  */
 function test(username: string, password: string) {
-  let pattern1 = /^[a-zA-Z\d_-]{2,10}$/;
-  let pattern2 = /^[a-zA-Z\d_-]{6,16}$/;
-  return pattern1.test(username!) && pattern2.test(password!);
+  let p1 = /^[a-zA-Z\d_-]{2,10}$/;
+  let p2 = /^[a-zA-Z\d_-]{6,16}$/;
+  return p1.test(username) && p2.test(password);
 }
 
 /**
@@ -29,6 +39,7 @@ function onSubmit() {
   } else {
     checkUser(data.value.username, data.value.password, () => {
       ElMessage({ message: "登陆成功！", type: "success" });
+      // router.push("/chat");
     }, () => {
       ElMessage({ message: "密码或用户名错误！", type: "error" });
     });
