@@ -1,19 +1,27 @@
 import { useCookies } from "@vueuse/integrations/useCookies";
 
+interface checkCookieReturn {
+  callback: any;
+  isExsit: boolean;
+}
+
 /**
- * 检查是否已经登陆过一次，且 Cookie 是否存在，如果存在就导航到聊天室页面。
+ * 检查 Cookie 是否存在，走对应的回调函数。
+ *
+ * 1. 回调函数可以直接返回对应的处理结果，比如字符串，这很适用于 Router 的 Redirect 字段。
+ * 2. 对于不直接返回字符串，直接使用 Router 进行路由跳转。
+ *
+ * @param cookeName Cookie 的名称。
+ * @param callback 回调函数，存在走 exsit，不存在走 notExsit。
+ * @returns 返回结果都是 any 是避免对于第一种情况，Vue 报类型错误。
  */
-export function checkCookie(
-  cookeName: string,
-  res: {
-    exsit?: () => any;
-    notExsit?: () => any;
-  }
-): any {
-  const cookies = useCookies();
-  if (cookies.get(cookeName)) {
-    return res.exsit ? res.exsit() : "";
+export function checkCookie(cookeName: string, callback?: { exsit?: () => any; none?: () => any }): checkCookieReturn {
+  let result = <checkCookieReturn>{};
+  result.isExsit = useCookies().get(cookeName) ? true : false;
+  if (result.isExsit) {
+    result.callback = callback?.exsit ? callback?.exsit() : "";
   } else {
-    return res.notExsit ? res.notExsit() : "";
+    result.callback = callback?.none ? callback?.none() : "";
   }
+  return result;
 }

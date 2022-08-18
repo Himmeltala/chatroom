@@ -4,26 +4,38 @@ import { checkCookie } from "../utils";
 const routes = [
   {
     path: "/",
-    redirect: checkCookie("USERID", {
-      exsit: () => "/chat",
-      notExsit: () => "/login",
-    }),
-  },
-  {
-    path: "/login",
-    component: () => import("@/views/Login.vue"),
-  },
-  {
-    path: "/logon",
-    component: () => import("@/views/Logon.vue"),
-  },
-  {
-    path: "/chat",
-    component: () => import("@/views/ChatRoom.vue"),
+    redirect: "/login",
+    children: [
+      {
+        path: "login",
+        name: "Login",
+        component: () => import("@/views/Login.vue"),
+      },
+      {
+        path: "logon",
+        name: "Logon",
+        component: () => import("@/views/Logon.vue"),
+      },
+      {
+        path: "chat",
+        name: "Chat",
+        component: () => import("@/views/ChatRoom.vue"),
+      },
+    ],
   },
 ];
 
-export const router = createRouter({
+const router = createRouter({
   history: createWebHashHistory("/"),
   routes,
 });
+
+router.beforeEach((to, from, next) => {
+  if (!checkCookie("USERID").isExsit && to.name !== "Login") {
+    next({ name: "Login" });
+  } else {
+    next();
+  }
+});
+
+export { router };

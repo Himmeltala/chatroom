@@ -15,7 +15,7 @@ export class Message {
 }
 
 export interface ConfigMenusData {
-  username: string,
-  popColor: string,
-  avatar: string
+  username: string;
+  popColor: string;
+  avatar: string;
 }

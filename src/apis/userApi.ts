@@ -1,11 +1,7 @@
 import { request } from "./index";
 import { UserModel } from "../models/userModel";
 
-export function checkUser(
-  data: any,
-  onSuccess: (e: Array<UserModel>, status: number) => void,
-  onError?: (e: any) => void
-) {
+export function checkUser(data: any, onSuccess: (e: Array<UserModel>, status: number) => void, onError?: (e: any) => void) {
   request
     .post("/login", data, {
       withCredentials: true,

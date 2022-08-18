@@ -34,7 +34,7 @@ function onSendText() {
 </script>
 
 <template>
-  <div class="bottom-menus" :style="{'height': height}">
+  <div class="bottom-menus" :style="{ 'height': height }">
     <div class="sending">
       <div class="msg-textarea" contenteditable="true" v-text="text" @input="changeText"></div>
       <el-button class="sending-btn" @click="onSendText">发送</el-button>

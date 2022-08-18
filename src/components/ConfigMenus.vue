@@ -15,10 +15,10 @@ const emits = defineEmits<{
 }>();
 
 watch(
-    () => configs,
-    (value) => {
-      emits("onChange", value);
-    }, { deep: true }
+  () => configs,
+  (value) => {
+    emits("onChange", value);
+  }, { deep: true }
 );
 
 emits("onInit", configs);
@@ -32,7 +32,7 @@ defineProps({
 </script>
 
 <template>
-  <div class="config-menus" :style="{'width': width}">
+  <div class="config-menus" :style="{ 'width': width }">
     <div class="cfig-item username">
       <div class="label">用户名</div>
       <el-input v-model="configs.username"></el-input>

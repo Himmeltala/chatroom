@@ -53,7 +53,7 @@ function onConfigMenusInit(e: any) {
               <!-- 别人的消息 -->
               <div class="left">
                 <div class="msg-holder">{{ msg.username }}</div>
-                <div class="msg-pop" :style="{'--pop-color': msg.popColor}">{{ msg.text }}</div>
+                <div class="msg-pop" :style="{ '--pop-color': msg.popColor }">{{ msg.text }}</div>
               </div>
               <div class="right"><img class="avatar" :src="msg.avatar" alt="oops!" /></div>
             </template>
@@ -62,7 +62,7 @@ function onConfigMenusInit(e: any) {
               <div class="left"><img class="avatar" :src="msg.avatar" alt="oops!" /></div>
               <div class="right">
                 <div class="msg-holder">{{ msg.username }}</div>
-                <div class="msg-pop" :style="{'--pop-color': msg.popColor}">{{ msg.text }}</div>
+                <div class="msg-pop" :style="{ '--pop-color': msg.popColor }">{{ msg.text }}</div>
               </div>
             </template>
           </div>

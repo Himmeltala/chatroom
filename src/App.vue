@@ -4,12 +4,7 @@ import { useRouter } from "vue-router";
 import { checkCookie } from "./utils";
 
 onMounted(() => {
-  const router = useRouter();
-  checkCookie("USERID", {
-    notExsit: () => {
-      router.push("/login");
-    },
-  });
+  checkCookie("USERID", { none: () => { useRouter().push("/login"); } });
 });
 </script>
 
