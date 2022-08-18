@@ -32,3 +32,18 @@ export function updateUser(data: UserModel, onSuccess: () => void, onError: () =
       onError();
     });
 }
+
+export function queryFriends(data: UserModel, onSuccess: (e: Array<UserModel>) => void, onError?: () => void) {
+  request
+    .post("/query/friends", data)
+    .then(({ data: res }) => {
+      if (res.status == 200) {
+        onSuccess(res.data);
+      } else {
+        onError ? onError() : "";
+      }
+    })
+    .catch((res) => {
+      onError ? onError() : "";
+    });
+}

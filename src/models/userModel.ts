@@ -1,6 +1,6 @@
 export interface UserModel {
   id?: number;
-  is_oneline?: number;
+  is_online?: number;
   socket_id?: string;
   username?: string;
   password?: string;

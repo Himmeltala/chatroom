@@ -10,9 +10,10 @@ declare module '@vue/runtime-core' {
     BottomMenus: typeof import('./src/components/BottomMenus.vue')['default']
     ConfigMenus: typeof import('./src/components/ConfigMenus.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
-    ElCheckbox: typeof import('element-plus/es')['ElCheckbox']
+    ElCheckbox: typeof import("element-plus/es")["ElCheckbox"]
     ElInput: typeof import('element-plus/es')['ElInput']
     LayColorPicker: typeof import('@layui/layui-vue')['LayColorPicker']
+    RightMenus: typeof import('./src/components/RightMenus.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

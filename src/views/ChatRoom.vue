@@ -2,8 +2,10 @@
 import { onMounted, ref } from "vue";
 import { io } from "socket.io-client";
 import { Message } from "../typescript/standard";
-import ConfigMenus from "@/components/ConfigMenus.vue";
-import BottomMenus from "@/components/BottomMenus.vue";
+import { updateUser, queryFriends } from "../apis/userApi";
+import { UserModel } from "../models/userModel";
+import { useCookies } from "@vueuse/integrations/useCookies";
+import { ElMessage } from "element-plus";
 
 const socket = io("http://localhost:3000");
 const methods: any = {};
@@ -12,10 +14,18 @@ let configs = ref();
 let socketId = ref("");
 let msgList = ref<Array<Message>>([]); // 消息列表
 let msgListDOM = ref<any>(null); // 模板引用
+let friends = ref<Array<UserModel>>([]); // 好友列表
 
 onMounted(() => {
   socket.on("connect", () => {
     socketId.value = socket.id;
+    updateUser({ socket_id: socket.id, id: useCookies().get("USERID"), is_online: 1 }, () => {
+      queryFriends({ id: useCookies().get("USERID") }, (e: any) => {
+        friends.value = e;
+      });
+    }, () => {
+      ElMessage({ message: "哎呀，好像出错了！", type: "warning" });
+    });
   });
 
   socket.on("broadcast", (e) => {
@@ -50,7 +60,6 @@ function onConfigMenusInit(e: any) {
         <div class="msg-list" ref="msgListDOM">
           <div class="msg-item" :class="msg.type" v-for="(msg, key) in msgList" :key="key">
             <template v-if="msg.type === 'self'">
-              <!-- 别人的消息 -->
               <div class="left">
                 <div class="msg-holder">{{ msg.username }}</div>
                 <div class="msg-pop" :style="{ '--pop-color': msg.popColor }">{{ msg.text }}</div>
@@ -58,7 +67,6 @@ function onConfigMenusInit(e: any) {
               <div class="right"><img class="avatar" :src="msg.avatar" alt="oops!" /></div>
             </template>
             <template v-else>
-              <!-- 自己的消息 -->
               <div class="left"><img class="avatar" :src="msg.avatar" alt="oops!" /></div>
               <div class="right">
                 <div class="msg-holder">{{ msg.username }}</div>
@@ -69,6 +77,7 @@ function onConfigMenusInit(e: any) {
         </div>
         <BottomMenus @on-send-text="methods.onSendText" />
       </div>
+      <RightMenus :data="friends" />
     </div>
   </div>
 </template>

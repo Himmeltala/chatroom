@@ -17,25 +17,25 @@ let data = ref({ username: "", password: "" });
  *
  * @param data 用户信息
  */
-function test(data: UserModel) {
-  let p1 = /^[a-zA-Z\d_-]{2,10}$/;
-  let p2 = /^[a-zA-Z\d_-]{6,16}$/;
-  return p1.test(data.username!) && p2.test(data.password!);
+function test(data: any) {
+  let p1 = /^[a-zA-Z0-9]{2,14}$/;
+  let p2 = /^[a-zA-Z0-9]{6,16}$/;
+  return p1.test(data.username) && p2.test(data.password);
 }
 
 function onSubmit() {
-  if (test(data.value)) {
+  if ( !test(data.value) ) {
     ElMessage({ message: "密码或用户名不符合规范！", type: "error" });
   } else {
     checkUser(
-      data.value,
-      () => {
-        ElMessage({ message: "登陆成功！", type: "success" });
-        router.push("/chat");
-      },
-      () => {
-        ElMessage({ message: "密码或用户名错误！", type: "error" });
-      }
+        data.value,
+        () => {
+          ElMessage({ message: "登陆成功！", type: "success" });
+          router.push("/chat");
+        },
+        () => {
+          ElMessage({ message: "密码或用户名错误！", type: "error" });
+        }
     );
   }
 }
