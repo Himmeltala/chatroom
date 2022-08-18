@@ -1,11 +1,4 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
-import { useRouter } from "vue-router";
-import { checkCookie } from "./utils";
-
-onMounted(() => {
-  checkCookie("USERID", { none: () => { useRouter().push("/login"); } });
-});
 </script>
 
 <template>
