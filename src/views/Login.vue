@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useStorage } from "@vueuse/core";
+import { useCookies } from "@vueuse/integrations/useCookies";
 import { checkUser } from "../apis/userApi";
 import { ElMessage } from "element-plus";
 
@@ -13,6 +13,10 @@ let data = ref({ username: "", password: "" });
  * 查询 storage 是否存在用户的id，不存在说明没有登陆，没有登陆就不跳转到 /chat。
  */
 onMounted(() => {
+  const cookies = useCookies();
+  if (cookies.get("USERID")) {
+    router.push("/chat");
+  }
 });
 
 /**
@@ -34,15 +38,19 @@ function test(username: string, password: string) {
  * 点击登录，提交表单
  */
 function onSubmit() {
-  if ( test(data.value.username, data.value.password) ) {
+  if (test(data.value.username, data.value.password)) {
     ElMessage({ message: "密码或用户名不符合规范！", type: "error" });
   } else {
-    checkUser(data.value.username, data.value.password, () => {
-      ElMessage({ message: "登陆成功！", type: "success" });
-      // router.push("/chat");
-    }, () => {
-      ElMessage({ message: "密码或用户名错误！", type: "error" });
-    });
+    checkUser(
+      data.value,
+      () => {
+        ElMessage({ message: "登陆成功！", type: "success" });
+        router.push("/chat");
+      },
+      () => {
+        ElMessage({ message: "密码或用户名错误！", type: "error" });
+      }
+    );
   }
 }
 </script>
@@ -54,7 +62,7 @@ function onSubmit() {
         <el-input v-model="data.username" />
       </div>
       <div class="input pwd-int">
-        <el-input v-model="data.password" />
+        <el-input type="password" show-password v-model="data.password" />
       </div>
       <div class="submit-btn">
         <el-button @click="onSubmit">登陆</el-button>
@@ -63,5 +71,4 @@ function onSubmit() {
   </div>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

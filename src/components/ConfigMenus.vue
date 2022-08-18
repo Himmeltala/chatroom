@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { watch, reactive } from "vue";
-import { ConfigMenusData } from "../types/standard";
+import { ConfigMenusData } from "@/typescript/standard";
 
 const resets = ["#009688", "#1E9FFF", "#FFB800", "#FF5722", "#5FB878"];
 let configs = reactive({

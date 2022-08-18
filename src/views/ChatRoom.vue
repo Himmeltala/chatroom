@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { io } from "socket.io-client";
-import { Message } from "../types/standard";
-import ConfigMenus from "../components/ConfigMenus.vue";
-import BottomMenus from "../components/BottomMenus.vue";
+import { Message } from "../typescript/standard";
+import ConfigMenus from "@/components/ConfigMenus.vue";
+import BottomMenus from "@/components/BottomMenus.vue";
 
 const socket = io("http://localhost:3000");
 const methods: any = {};
