@@ -18,15 +18,15 @@ let friends = ref<Array<UserModel>>([]); // 好友列表
 onMounted(() => {
   socket.on("connect", () => {
     updateUser({ socket_id: socket.id, id: useCookies().get("USERID"), is_online: 1 }, () => {
-      queryFriends({ id: useCookies().get("USERID") }, ({ data: _data }) => {
-        friends.value = _data;
+      queryFriends({ id: useCookies().get("USERID") }, ({ data }) => {
+        friends.value = data;
       });
     });
   });
 
   socket.on("refresh-friends", () => {
-    queryFriends({ id: useCookies().get("USERID") }, ({ data: _data }) => {
-      friends.value = _data;
+    queryFriends({ id: useCookies().get("USERID") }, ({ data }) => {
+      friends.value = data;
     });
   })
 
