@@ -3,7 +3,12 @@ import { request } from "../apis";
 import { UserModel } from "../models/userModel";
 
 export interface NormalizeAxiosSuccess {
-  (response: any): void;
+  (response: NormalizeResponse): void;
+}
+
+interface NormalizeResponse {
+  status?: number;
+  data: any;
 }
 
 export interface NormalizeAxiosError {
@@ -20,41 +25,32 @@ interface NormalizeCluase {
   (data: any): boolean;
 }
 
-interface NormalizeResponse {
-  status?: number;
-  data: any;
-}
-
-function normalizeThen(res: NormalizeResponse, onSuccess?: NormalizeAxiosSuccess, onError?: NormalizeAxiosError, cluase?: NormalizeCluase) {
+function handleAxiosThen(res: NormalizeResponse, success?: NormalizeAxiosSuccess, error?: NormalizeAxiosError, cluase?: NormalizeCluase) {
   if (res.status == 200 && (cluase ? cluase(res.data) : true)) {
-    onSuccess ? onSuccess(res) : "";
+    success ? success(res) : "";
   } else {
-    onError ? onError(res) : "";
+    error ? error(res) : "";
   }
 }
 
-export function normalizeGet(ops: NormalizeAxiosOptions, onSuccess?: NormalizeAxiosSuccess, onError?: NormalizeAxiosError, cluase?: NormalizeCluase): void {
+export function normalizeGet(ops: NormalizeAxiosOptions, success?: NormalizeAxiosSuccess, error?: NormalizeAxiosError, cluase?: NormalizeCluase): void {
   request
     .get(ops.url, ops.config)
-    .then(({ data }) => {
-      if (data.status == 200 && (cluase ? cluase(data) : true)) {
-        onSuccess ? onSuccess(data) : "";
-      } else {
-        onError ? onError(data) : "";
-      }
+    .then(({ data: response }) => {
+      handleAxiosThen(response, success, error, cluase);
     })
     .catch((err) => {
-      onError ? onError(err) : "";
+      error ? error(err) : "";
     });
 }
 
-export function normalizePost(ops: NormalizeAxiosOptions, onSuccess?: NormalizeAxiosSuccess, onError?: NormalizeAxiosError, cluase?: NormalizeCluase): void {
+export function normalizePost(ops: NormalizeAxiosOptions, success?: NormalizeAxiosSuccess, error?: NormalizeAxiosError, cluase?: NormalizeCluase): void {
   request
     .post(ops.url, ops.data, ops.config)
     .then(({ data: response }) => {
-      normalizeThen(response, onSuccess, onError, cluase);
+      handleAxiosThen(response, success, error, cluase);
     })
     .catch((err) => {
-      onError ? onError(err) : "";
+      error ? error(err) : "";
     });
 }
