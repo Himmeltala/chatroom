@@ -12,14 +12,14 @@ interface checkCookieReturn {
  * 2. 对于不直接返回字符串，直接使用 Router 进行路由跳转。
  *
  * @param cookeName Cookie 的名称。
- * @param callback 回调函数，存在走 exsit，不存在走 notExsit。
+ * @param callback 回调函数，存在走 exist，不存在走 notExsit。
  * @returns 返回结果都是 any 是避免对于第一种情况，Vue 报类型错误。
  */
-export function checkCookie(cookeName: string, callback?: { exsit?: () => any; none?: () => any }): checkCookieReturn {
+export function checkCookie(cookeName: string, callback?: { exist?: () => any; none?: () => any }): checkCookieReturn {
   let result = <checkCookieReturn>{};
-  result.isExsit = useCookies().get(cookeName) ? true : false;
-  if (result.isExsit) {
-    result.callback = callback?.exsit ? callback?.exsit() : "";
+  result.isExsit = useCookies().get(cookeName);
+  if ( result.isExsit ) {
+    result.callback = callback?.exist ? callback?.exist() : "";
   } else {
     result.callback = callback?.none ? callback?.none() : "";
   }

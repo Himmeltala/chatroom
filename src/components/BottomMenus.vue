@@ -11,7 +11,8 @@ defineProps({
 });
 
 const emits = defineEmits<{
-  (e: "onSendText", text: string): void
+  (e: "onSendText", text: string): void;
+  (e: "onInputText", text: string): void;
 }>();
 
 /**
@@ -21,11 +22,12 @@ const emits = defineEmits<{
  */
 function changeText(e: any) {
   text.value = e.target.innerText;
+  emits("onInputText", text.value);
 }
 
 /**
  * 向父组件提交一个自定义事件，把数据文本信息传递给父组件。
- * 与此同时，清除消息输入框内的文本，使用 v-text 可以响应式地更新文本。
+ * 与此同时，清除消息输入框内的文本，使用 v-inputText 可以响应式地更新文本。
  */
 function onSendText() {
   emits("onSendText", text.value);

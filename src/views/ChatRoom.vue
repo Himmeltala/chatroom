@@ -1,43 +1,43 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { io } from "socket.io-client";
-import { Message } from "../typescript/standard";
 import { updateUser, queryFriends } from "../apis/userApi";
+import { Message } from "../typescript/standard";
 import { UserModel } from "../models/userModel";
 import { useCookies } from "@vueuse/integrations/useCookies";
-import { ElMessage } from "element-plus";
 
 const socket = io("http://localhost:3000");
 const methods: any = {};
-
 let configs = ref();
+let inputText = ref<string>("");
 let msgList = ref<Array<Message>>([]); // 消息列表
 let msgListDOM = ref<any>(null); // 模板引用
 let friends = ref<Array<UserModel>>([]); // 好友列表
+let selectedBuddy = ref<UserModel>({});
 
 onMounted(() => {
   socket.on("connect", () => {
-    updateUser({ socket_id: socket.id, id: useCookies().get("USERID"), is_online: 1 }, () => {
-      queryFriends({ id: useCookies().get("USERID") }, ({ data }) => {
+    updateUser({ socket_id: socket.id, id: useCookies().get("USERINFO").id, is_online: 1 }, () => {
+      queryFriends({ id: useCookies().get("USERINFO").id }, ({ data }) => {
         friends.value = data;
       });
     });
   });
-
-  socket.on("refresh-friends", () => {
-    queryFriends({ id: useCookies().get("USERID") }, ({ data }) => {
-      friends.value = data;
-    });
-  })
 
   socket.on("broadcast", (e) => {
     msgList.value.push(e);
     msgListDOM.value.scrollTop = msgListDOM.value.scrollHeight;
   });
 
+  socket.on("echo-private", (e) => {
+    msgList.value.push(e);
+    msgListDOM.value.scrollTop = msgListDOM.value.scrollHeight;
+  });
+
   methods.onSendText = (text: string) => {
-    let message = new Message(configs.value.username, text, configs.value.avatar, configs.value.popColor, "others");
-    socket.emit("sending", message);
+    let info = useCookies().get("USERINFO");
+    let message = new Message(info.username, text, info.avatar, configs.value.popColor, "others", selectedBuddy.value.socket_id);
+    socket.emit("send-private", message);
     message.type = "self";
     msgList.value.push(message);
     msgListDOM.value.scrollTop = msgListDOM.value.scrollHeight;
@@ -51,6 +51,20 @@ function onConfigMenusDataChange(e: any) {
 function onConfigMenusInit(e: any) {
   configs.value = e;
 }
+
+function onInputText(e: string) {
+  inputText.value = e;
+}
+
+function onSelectFriend(e: UserModel) {
+  selectedBuddy.value = e;
+}
+
+function onReload() {
+  queryFriends({ id: useCookies().get("USERINFO").id }, ({ data }) => {
+    friends.value = data;
+  });
+}
 </script>
 
 <template>
@@ -58,7 +72,13 @@ function onConfigMenusInit(e: any) {
     <div class="wrapper">
       <ConfigMenus @on-change="onConfigMenusDataChange" @on-init="onConfigMenusInit" />
       <div class="content">
-        <div class="uid">Your socket ID: {{ }}</div>
+        <div class="friend">
+          <div class="username">{{ selectedBuddy.username }}</div>
+          <div class="is-online">
+            <template v-if="selectedBuddy.is_online === 1">在线</template>
+            <template v-else>离线</template>
+          </div>
+        </div>
         <div class="msg-list" ref="msgListDOM">
           <div class="msg-item" :class="msg.type" v-for="(msg, key) in msgList" :key="key">
             <template v-if="msg.type === 'self'">
@@ -77,9 +97,9 @@ function onConfigMenusInit(e: any) {
             </template>
           </div>
         </div>
-        <BottomMenus @on-send-text="methods.onSendText" />
+        <BottomMenus :height="'12%'" @on-send-text="methods.onSendText" @on-input-text="onInputText" />
       </div>
-      <RightMenus :data="friends" />
+      <RightMenus @on-reload="onReload" :data="friends" @on-select-friend="onSelectFriend" />
     </div>
   </div>
 </template>
@@ -116,12 +136,13 @@ function onConfigMenusInit(e: any) {
   border-left-width: 1px;
 }
 
-.uid {
+.friend {
   display: flex;
+  flex-direction: column;
   align-items: center;
   align-content: center;
   justify-content: center;
-  height: 7%;
+  height: 8%;
   background-color: #F9F9F9;
 }
 

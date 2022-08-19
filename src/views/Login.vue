@@ -3,7 +3,6 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { checkUser } from "../apis/userApi";
 import { ElMessage } from "element-plus";
-import { UserModel } from "../models/userModel";
 
 const router = useRouter();
 

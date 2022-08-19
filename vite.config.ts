@@ -18,6 +18,6 @@ export default defineConfig({
     ElementPlus({})
   ],
   resolve: {
-    alias: { "@": path.resolve(__dirname, "./src") }
+    alias: { "@": path.resolve(__dirname, "src") }
   }
 });

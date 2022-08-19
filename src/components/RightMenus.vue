@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { UserModel } from "../models/userModel";
+import { ElMessage } from "element-plus";
 
 defineProps({
   data: {
@@ -7,16 +8,29 @@ defineProps({
   }
 });
 
-function selectedUser(item: UserModel) {
+const emits = defineEmits<{
+  (e: "onSelectFriend", value: UserModel): void;
+  (e: "onReload"): void
+}>();
 
+function selectFriend(item: UserModel) {
+  emits("onSelectFriend", item);
+}
+
+function reload() {
+  emits("onReload");
+  ElMessage({ message: "好友列表已更新", type: "success" });
 }
 </script>
 
 <template>
   <div class="right-menus">
     <div class="friends">
+      <div class="reload-btn">
+        <el-button plain size="small" @click="reload">刷新好友列表</el-button>
+      </div>
       <template v-for="item in data">
-        <div class="item" @click="selectedUser(item)">
+        <div class="item" @click="selectFriend(item)">
           <div class="left">
             <div class="status" v-if="item.is_online !== 0"></div>
             <img class="avatar" :src="item.avatar" :class="item.is_online === 0 ? 'outline': ''" alt="avatar" />
@@ -35,6 +49,14 @@ function selectedUser(item: UserModel) {
 .friends {
   padding: 10px;
   box-sizing: border-box;
+}
+
+.item, .reload-btn {
+  margin-bottom: 15px;
+}
+
+.reload-btn > button {
+  width: 100%;
 }
 
 .item {
