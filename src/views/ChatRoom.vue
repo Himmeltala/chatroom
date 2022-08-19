@@ -11,22 +11,24 @@ const socket = io("http://localhost:3000");
 const methods: any = {};
 
 let configs = ref();
-let socketId = ref("");
 let msgList = ref<Array<Message>>([]); // 消息列表
 let msgListDOM = ref<any>(null); // 模板引用
 let friends = ref<Array<UserModel>>([]); // 好友列表
 
 onMounted(() => {
   socket.on("connect", () => {
-    socketId.value = socket.id;
     updateUser({ socket_id: socket.id, id: useCookies().get("USERID"), is_online: 1 }, () => {
-      queryFriends({ id: useCookies().get("USERID") }, (e: any) => {
-        friends.value = e;
+      queryFriends({ id: useCookies().get("USERID") }, ({ data: _data }) => {
+        friends.value = _data;
       });
-    }, () => {
-      ElMessage({ message: "哎呀，好像出错了！", type: "warning" });
     });
   });
+
+  socket.on("refresh-friends", () => {
+    queryFriends({ id: useCookies().get("USERID") }, ({ data: _data }) => {
+      friends.value = _data;
+    });
+  })
 
   socket.on("broadcast", (e) => {
     msgList.value.push(e);
@@ -56,7 +58,7 @@ function onConfigMenusInit(e: any) {
     <div class="wrapper">
       <ConfigMenus @on-change="onConfigMenusDataChange" @on-init="onConfigMenusInit" />
       <div class="content">
-        <div class="uid">Your socket ID: {{ socketId }}</div>
+        <div class="uid">Your socket ID: {{ }}</div>
         <div class="msg-list" ref="msgListDOM">
           <div class="msg-item" :class="msg.type" v-for="(msg, key) in msgList" :key="key">
             <template v-if="msg.type === 'self'">

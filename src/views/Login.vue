@@ -24,18 +24,18 @@ function test(data: any) {
 }
 
 function onSubmit() {
-  if ( !test(data.value) ) {
+  if (!test(data.value)) {
     ElMessage({ message: "密码或用户名不符合规范！", type: "error" });
   } else {
     checkUser(
-        data.value,
-        () => {
-          ElMessage({ message: "登陆成功！", type: "success" });
-          router.push("/chat");
-        },
-        () => {
-          ElMessage({ message: "密码或用户名错误！", type: "error" });
-        }
+      data.value,
+      () => {
+        ElMessage({ message: "登陆成功！", type: "success" });
+        router.push("/chat");
+      },
+      () => {
+        ElMessage({ message: "密码或用户名错误！", type: "error" });
+      }
     );
   }
 }
