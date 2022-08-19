@@ -75,8 +75,11 @@ function onReload() {
         <div class="friend">
           <div class="username">{{ selectedBuddy.username }}</div>
           <div class="is-online">
-            <template v-if="selectedBuddy.is_online === 1">在线</template>
-            <template v-else>离线</template>
+            <template v-if="selectedBuddy.username">
+              <template v-if="selectedBuddy.is_online === 1">在线</template>
+              <template v-else>离线</template>
+            </template>
+            <template v-else>未选择好友</template>
           </div>
         </div>
         <div class="msg-list" ref="msgListDOM">
@@ -97,7 +100,8 @@ function onReload() {
             </template>
           </div>
         </div>
-        <BottomMenus :height="'12%'" @on-send-text="methods.onSendText" @on-input-text="onInputText" />
+        <BottomMenus :is-disabled="!selectedBuddy.username" :height="'12%'"
+                     @on-send-text="methods.onSendText" @on-input-text="onInputText" />
       </div>
       <RightMenus @on-reload="onReload" :data="friends" @on-select-friend="onSelectFriend" />
     </div>
@@ -116,7 +120,7 @@ function onReload() {
 .wrapper {
   background-color: white;
   color: #4D4949;
-  width: 800px;
+  width: 1100px;
   height: 580px;
   display: flex;
   justify-content: space-between;
@@ -125,7 +129,7 @@ function onReload() {
 }
 
 .content {
-  width: 70%;
+  width: 60%;
   height: 100%;
   border-color: #E9E9E9;
   border-radius: 4px;

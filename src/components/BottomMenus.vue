@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { ElMessage } from "element-plus";
 
 let text = ref("");
 
-defineProps({
+const props = defineProps({
   height: {
     type: String,
     default: "13%"
+  },
+  isDisabled: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -14,6 +19,16 @@ const emits = defineEmits<{
   (e: "onSendText", text: string): void;
   (e: "onInputText", text: string): void;
 }>();
+
+function debounce(fn: Function, wait: number) {
+  let timer: any = null;
+  return function () {
+    if ( timer !== null ) {
+      clearTimeout(timer);
+    }
+    timer = setTimeout(fn, wait);
+  };
+}
 
 /**
  * 监听可编辑的 <div> 元素，当输入文本时调用该函数。
@@ -39,7 +54,7 @@ function onSendText() {
   <div class="bottom-menus" :style="{ 'height': height }">
     <div class="sending">
       <div class="msg-textarea" contenteditable="true" v-text="text" @input="changeText"></div>
-      <el-button class="sending-btn" @click="onSendText">发送</el-button>
+      <el-button :disabled="isDisabled" class="sending-btn" @click="onSendText">发送</el-button>
     </div>
   </div>
 </template>

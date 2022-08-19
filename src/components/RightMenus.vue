@@ -5,6 +5,10 @@ import { ElMessage } from "element-plus";
 defineProps({
   data: {
     type: Array <UserModel>
+  },
+  width: {
+    type: String,
+    default: "20%"
   }
 });
 
@@ -24,7 +28,7 @@ function reload() {
 </script>
 
 <template>
-  <div class="right-menus">
+  <div class="right-menus" :style="{'width': width}">
     <div class="friends">
       <div class="reload-btn">
         <el-button plain size="small" @click="reload">刷新好友列表</el-button>

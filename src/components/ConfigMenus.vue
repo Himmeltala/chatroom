@@ -24,7 +24,7 @@ emits("onInit", configs);
 defineProps({
   width: {
     type: String,
-    default: "30%"
+    default: "20%"
   }
 });
 </script>
