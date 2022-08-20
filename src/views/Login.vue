@@ -5,7 +5,6 @@ import { checkUser } from "../apis/userApi";
 import { ElMessage } from "element-plus";
 
 const router = useRouter();
-
 let data = ref({ username: "", password: "" });
 
 function test(data: any) {
@@ -15,18 +14,18 @@ function test(data: any) {
 }
 
 function login() {
-  if ( !test(data.value) ) {
+  if (!test(data.value)) {
     ElMessage({ message: "密码或用户名不符合规范！", type: "error" });
   } else {
     checkUser(
-        data.value,
-        () => {
-          ElMessage({ message: "登陆成功！", type: "success" });
-          router.push("/chat");
-        },
-        () => {
-          ElMessage({ message: "密码或用户名错误！", type: "error" });
-        }
+      data.value,
+      () => {
+        ElMessage({ message: "登陆成功！", type: "success" });
+        router.push("/chat");
+      },
+      () => {
+        ElMessage({ message: "密码或用户名错误！", type: "error" });
+      }
     );
   }
 }
@@ -64,7 +63,10 @@ function logon() {
   height: 100%;
 }
 
-.login, .input-box, .submit-btn, .input-box > .label {
+.login,
+.input-box,
+.submit-btn,
+.input-box>.label {
   display: flex;
   justify-content: center;
   align-content: center;
@@ -86,12 +88,12 @@ function logon() {
   border-radius: 10px;
 }
 
-.input-box > .label {
+.input-box>.label {
   width: 15%;
   height: 25px;
 }
 
-.input-box > .input {
+.input-box>.input {
   width: 85%;
   border: 0;
   outline: none;
@@ -99,7 +101,7 @@ function logon() {
   font-size: 16px;
 }
 
-.submit-btn > button {
+.submit-btn>button {
   width: 50%;
   height: 40px;
   font-size: 16px;

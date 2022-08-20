@@ -13,10 +13,10 @@ const emits = defineEmits<{
 }>();
 
 watch(
-    () => configs,
-    (value) => {
-      emits("onChange", value);
-    }, { deep: true }
+  () => configs,
+  (value) => {
+    emits("onChange", value);
+  }, { deep: true }
 );
 
 emits("onInit", configs);

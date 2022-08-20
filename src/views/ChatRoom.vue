@@ -15,18 +15,15 @@ let msgListDOM = ref<any>(null); // 模板引用
 let friends = ref<Array<UserModel>>([]); // 好友列表
 let selectedBuddy = ref<UserModel>({});
 
+let cookie = useCookies().get("USERINFO");
+
 onMounted(() => {
   socket.on("connect", () => {
-    updateUser({ socket_id: socket.id, id: useCookies().get("USERINFO").id, is_online: 1 }, () => {
-      queryFriends({ id: useCookies().get("USERINFO").id }, ({ data }) => {
+    updateUser({ socket_id: socket.id, id: cookie.id, is_online: 1 }, () => {
+      queryFriends({ id: cookie.id }, ({ data }) => {
         friends.value = data;
       });
     });
-  });
-
-  socket.on("broadcast", (e) => {
-    msgList.value.push(e);
-    msgListDOM.value.scrollTop = msgListDOM.value.scrollHeight;
   });
 
   socket.on("echo-private", (e) => {
@@ -35,9 +32,8 @@ onMounted(() => {
   });
 
   methods.onSendText = (text: string) => {
-    let info = useCookies().get("USERINFO");
-    let message = new Message(info.username, text, info.avatar, configs.value.popColor, "others", selectedBuddy.value.socket_id);
-    socket.emit("send-private", message);
+    let message = new Message(cookie.username, text, cookie.avatar, configs.value.popColor, "others", selectedBuddy.value.socket_id);
+    socket.emit("emit-private", message);
     message.type = "self";
     msgList.value.push(message);
     msgListDOM.value.scrollTop = msgListDOM.value.scrollHeight;
@@ -61,7 +57,7 @@ function onSelectFriend(e: UserModel) {
 }
 
 function onReload() {
-  queryFriends({ id: useCookies().get("USERINFO").id }, ({ data }) => {
+  queryFriends({ id: cookie.id }, ({ data }) => {
     friends.value = data;
   });
 }
@@ -86,7 +82,7 @@ function onReload() {
           <div class="msg-item" :class="msg.type" v-for="(msg, key) in msgList" :key="key">
             <template v-if="msg.type === 'self'">
               <div class="left">
-                <div class="msg-holder">{{ msg.username }}</div>
+                <!-- <div class="msg-holder">{{ msg.username }}</div> -->
                 <div class="msg-pop" :style="{ '--pop-color': msg.popColor }">{{ msg.text }}</div>
               </div>
               <div class="right"><img class="avatar" :src="msg.avatar" alt="oops!" /></div>
@@ -94,14 +90,14 @@ function onReload() {
             <template v-else>
               <div class="left"><img class="avatar" :src="msg.avatar" alt="oops!" /></div>
               <div class="right">
-                <div class="msg-holder">{{ msg.username }}</div>
+                <!-- <div class="msg-holder">{{ msg.username }}</div> -->
                 <div class="msg-pop" :style="{ '--pop-color': msg.popColor }">{{ msg.text }}</div>
               </div>
             </template>
           </div>
         </div>
-        <BottomMenus :is-disabled="!selectedBuddy.username" :height="'12%'"
-                     @on-send-text="methods.onSendText" @on-input-text="onInputText" />
+        <BottomMenus :is-disabled="!selectedBuddy.username" :height="'12%'" @on-send-text="methods.onSendText"
+          @on-input-text="onInputText" />
       </div>
       <RightMenus @on-reload="onReload" :data="friends" @on-select-friend="onSelectFriend" />
     </div>
@@ -180,21 +176,30 @@ function onReload() {
 }
 
 .msg-list .others .left {
-  margin-right: 20px;
   width: 12%;
+}
+
+.msg-list .others .right {
+  width: 88%;
   display: flex;
-  align-content: center;
-  justify-content: center;
+  flex-direction: column;
   align-items: flex-start;
+  justify-content: center;
+  align-content: center;
 }
 
 .msg-list .self .right {
-  margin-left: 20px;
+  text-align: right;
   width: 12%;
+}
+
+.msg-list .self .left {
+  width: 88%;
   display: flex;
+  flex-direction: column;
   align-content: center;
   justify-content: center;
-  align-items: flex-start;
+  align-items: flex-end;
 }
 
 .msg-list .self .left .msg-holder {
@@ -205,7 +210,7 @@ function onReload() {
   width: auto;
   margin-top: 5px;
   background-color: var(--pop-color);
-  padding: 8px 8px;
+  padding: 10px 10px;
   box-sizing: border-box;
   border-radius: 8px;
   word-break: break-word;
@@ -237,6 +242,5 @@ function onReload() {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  margin-top: 10px;
 }
 </style>

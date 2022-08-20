@@ -25,7 +25,7 @@ interface NormalizeCluase {
   (data: any): boolean;
 }
 
-function handleAxiosThen(res: NormalizeResponse, success?: NormalizeAxiosSuccess, error?: NormalizeAxiosError, cluase?: NormalizeCluase) {
+function handleAxiosThen(res: NormalizeResponse, success?: NormalizeAxiosSuccess, error?: NormalizeAxiosError, cluase?: NormalizeCluase): void {
   if (res.status == 200 && (cluase ? cluase(res.data) : true)) {
     success ? success(res) : "";
   } else {

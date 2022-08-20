@@ -23,7 +23,7 @@ const emits = defineEmits<{
 function debounce(fn: Function, wait: number) {
   let timer: any = null;
   return function () {
-    if ( timer !== null ) {
+    if (timer !== null) {
       clearTimeout(timer);
     }
     timer = setTimeout(fn, wait);
