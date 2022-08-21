@@ -48,7 +48,7 @@ function onConfigMenusInit(e: any) {
   configs.value = e;
 }
 
-function onInputText(e: string) {
+function onTextChanged(e: string) {
   inputText.value = e;
 }
 
@@ -97,14 +97,16 @@ function onReload() {
           </div>
         </div>
         <BottomMenus :is-disabled="!selectedBuddy.username" :height="'12%'" @on-send-text="methods.onSendText"
-          @on-input-text="onInputText" />
+          @on-text-changed="onTextChanged" />
       </div>
-      <RightMenus @on-reload="onReload" :data="friends" @on-select-friend="onSelectFriend" />
+      <RightMenus @on-reload="onReload" :data="friends" @on-select-friend="onSelectFriend">
+        <div>Hello World!</div>
+      </RightMenus>
     </div>
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .chatroom {
   width: 100%;
   height: 100%;

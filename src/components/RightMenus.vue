@@ -49,67 +49,65 @@ function reload() {
   </div>
 </template>
 
-<style scoped>
-.friends {
-  padding: 10px;
-  box-sizing: border-box;
-}
+<style scoped lang="scss">
+.right-menus {
+  .friends {
+    padding: 10px;
+    box-sizing: border-box;
+  }
 
-.item,
-.reload-btn {
-  margin-bottom: 15px;
-}
+  .item,
+  .reload-btn {
+    margin-bottom: 15px;
+  }
 
-.reload-btn>button {
-  width: 100%;
-}
+  .reload-btn {
+    &>button {
+      width: 100%;
+    }
+  }
 
-.item {
-  margin-bottom: 15px;
-  width: 170px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  align-content: center;
-}
+  .item {
+    margin-bottom: 15px;
+    @include flex(space-between);
 
-.username {
-  font-size: 14px;
-}
+    .left {
+      width: 20%;
+      position: relative;
 
-.avatar {
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-}
+      .status {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #54ED39;
+        position: absolute;
+        right: 0;
+        bottom: 0;
+      }
 
-.outline {
-  filter: grayscale(100%);
-}
+      .avatar {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+      }
 
-.left {
-  width: 20%;
-  position: relative;
-}
+      .outline {
+        filter: grayscale(100%);
+      }
+    }
 
-.status {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: #54ED39;
-  right: 0;
-  bottom: 0;
-}
+    .right {
+      width: 75%;
 
-.right {
-  width: 75%;
-}
+      .username {
+        font-size: 14px;
+      }
 
-.signature {
-  font-size: 12px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
+      .signature {
+        font-size: 12px;
+        @include ellipsis();
+      }
+    }
+  }
 }
 </style>

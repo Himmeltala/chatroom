@@ -20,4 +20,14 @@ export default defineConfig({
   resolve: {
     alias: { "@": path.resolve(__dirname, "src") },
   },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        additionalData: `
+          @import '@/assets/styles/variables.scss';
+          @import '@/assets/styles/mixins.scss';
+        `,
+      },
+    },
+  },
 });

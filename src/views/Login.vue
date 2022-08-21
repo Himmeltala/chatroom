@@ -57,53 +57,52 @@ function logon() {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .login {
   width: 100%;
   height: 100%;
+
+  .content {
+    background-color: white;
+    width: 400px;
+    border-radius: 10px;
+    border: 1px solid #E7E7E7;
+    padding: 75px 60px;
+
+    .input-box {
+      margin-bottom: 40px;
+      border: 1px solid #E7E7E7;
+      padding: 10px 10px;
+      border-radius: 10px;
+
+      .label {
+        width: 15%;
+        height: 25px;
+      }
+
+      .input {
+        width: 85%;
+        border: 0;
+        outline: none;
+        height: 25px;
+        font-size: 16px;
+      }
+    }
+
+    .submit-btn {
+      button {
+        width: 50%;
+        height: 40px;
+        font-size: 16px;
+      }
+    }
+  }
 }
 
 .login,
 .input-box,
 .submit-btn,
 .input-box>.label {
-  display: flex;
-  justify-content: center;
-  align-content: center;
-  align-items: center;
-}
-
-.content {
-  background-color: white;
-  width: 400px;
-  border-radius: 10px;
-  border: 1px solid #E7E7E7;
-  padding: 75px 60px;
-}
-
-.input-box {
-  margin-bottom: 40px;
-  border: 1px solid #E7E7E7;
-  padding: 10px 10px;
-  border-radius: 10px;
-}
-
-.input-box>.label {
-  width: 15%;
-  height: 25px;
-}
-
-.input-box>.input {
-  width: 85%;
-  border: 0;
-  outline: none;
-  height: 25px;
-  font-size: 16px;
-}
-
-.submit-btn>button {
-  width: 50%;
-  height: 40px;
-  font-size: 16px;
+  @include flex();
 }
 </style>

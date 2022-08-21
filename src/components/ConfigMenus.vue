@@ -38,25 +38,29 @@ defineProps({
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .config-menus {
-  box-sizing: border-box;
   height: 100%;
   padding: 10px 10px;
-  border-radius: 4px;
-  border-left-width: 1px;
-  border-top-width: 1px;
-  border-bottom-width: 1px;
-  border-right-width: 0;
-  border-color: #E9E9E9;
-  border-style: solid;
-}
+  box-sizing: border-box;
 
-.config-menus .cfig-item {
-  margin-bottom: 15px;
-}
+  border: {
+    left-width: 1px;
+    right-width: 0;
+    top-width: 1px;
+    bottom-width: 1px;
+    radius: 4px;
+    color: $border-color;
+    style: solid;
+  }
 
-.cfig-item .label {
-  margin-bottom: 5px;
+
+  .cfig-item {
+    margin-bottom: 15px;
+
+    .label {
+      margin-bottom: 5px;
+    }
+  }
 }
 </style>

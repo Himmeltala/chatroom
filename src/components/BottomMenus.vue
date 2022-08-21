@@ -17,34 +17,15 @@ const props = defineProps({
 
 const emits = defineEmits<{
   (e: "onSendText", text: string): void;
-  (e: "onInputText", text: string): void;
+  (e: "onTextChanged", text: string): void;
 }>();
 
-function debounce(fn: Function, wait: number) {
-  let timer: any = null;
-  return function () {
-    if (timer !== null) {
-      clearTimeout(timer);
-    }
-    timer = setTimeout(fn, wait);
-  };
-}
-
-/**
- * 监听可编辑的 <div> 元素，当输入文本时调用该函数。
- * 函数接收由 InputEvent 参数，获得监听的元素中的 innerText。
- * @param e InputEvent
- */
-function changeText(e: any) {
+function textChanged(e: any) {
   text.value = e.target.innerText;
-  emits("onInputText", text.value);
+  emits("onTextChanged", text.value);
 }
 
-/**
- * 向父组件提交一个自定义事件，把数据文本信息传递给父组件。
- * 与此同时，清除消息输入框内的文本，使用 v-inputText 可以响应式地更新文本。
- */
-function onSendText() {
+function sendText() {
   emits("onSendText", text.value);
   text.value = "";
 }
@@ -52,46 +33,47 @@ function onSendText() {
 
 <template>
   <div class="bottom-menus" :style="{ 'height': height }">
-    <div class="sending">
-      <div class="msg-textarea" contenteditable="true" v-text="text" @input="changeText"></div>
-      <el-button :disabled="isDisabled" class="sending-btn" @click="onSendText">发送</el-button>
+    <div class="menus-box">
+      <div class="textarea" contenteditable="true" v-text="text" @input="textChanged"></div>
+      <el-button :disabled="isDisabled" class="btn" @click="sendText">发送</el-button>
     </div>
   </div>
 </template>
 
-<style scoped>
-.sending {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-content: center;
-  align-items: center;
-}
+<style scoped lang="scss">
+.bottom-menus {
+  .menus-box {
+    width: 100%;
+    height: 100%;
 
-.sending .msg-textarea {
-  box-sizing: border-box;
-  padding: 4px;
-  outline: none;
-  height: 100%;
-  width: 100%;
-  border: 1px solid #E9E9E9;
-  border-radius: 4px;
-  caret-color: #9B9191;
-  overflow-x: auto;
-  transition: 0.6s;
-}
+    @include flex($justify: space-between) {
+      flex-direction: row;
+      flex-wrap: nowrap;
+    }
 
-.sending .msg-textarea:hover {
-  border-color: #D0CBCB;
-}
+    .textarea {
+      height: 100%;
+      width: 100%;
+      outline: none;
+      padding: 4px;
+      border: 1px solid $border-color;
+      border-radius: 4px;
+      overflow-x: auto;
+      transition: 0.6s ease;
+      box-sizing: border-box;
 
-.sending .msg-textarea:focus {
-  transition: 0.6s;
-  border-color: #409EFF;
-}
+      &:hover {
+        border-color: $hover-border-color;
+      }
 
-.sending .sending-btn {
-  height: 100%;
+      &:focus {
+        border-color: $focus-border-color;
+      }
+    }
+
+    .btn {
+      height: 100%;
+    }
+  }
 }
 </style>
