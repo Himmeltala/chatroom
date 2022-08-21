@@ -68,7 +68,7 @@ function onReload() {
     <div class="wrapper">
       <ConfigMenus @on-change="onConfigMenusDataChange" @on-init="onConfigMenusInit" />
       <div class="content">
-        <div class="friend">
+        <div class="friends">
           <div class="username">{{ selectedBuddy.username }}</div>
           <div class="is-online">
             <template v-if="selectedBuddy.username">
@@ -110,139 +110,152 @@ function onReload() {
 .chatroom {
   width: 100%;
   height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+  @include flex();
 
-.wrapper {
-  background-color: white;
-  color: #4D4949;
-  width: 1100px;
-  height: 580px;
-  display: flex;
-  justify-content: space-between;
-  align-content: center;
-  align-items: flex-start;
-}
+  .wrapper {
+    background-color: white;
+    color: #4D4949;
+    width: 1100px;
+    height: 580px;
+    @include flex(space-between, $align-items: flex-start);
 
-.content {
-  width: 60%;
-  height: 100%;
-  border-color: #E9E9E9;
-  border-radius: 4px;
-  border-style: solid;
-  border-right-width: 1px;
-  border-top-width: 1px;
-  border-bottom-width: 1px;
-  border-left-width: 1px;
-}
+    .content {
+      width: 60%;
+      height: 100%;
 
-.friend {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  align-content: center;
-  justify-content: center;
-  height: 8%;
-  background-color: #F9F9F9;
+      border: {
+        color: $border-color;
+        radius: $border-radius-small;
+        style: solid;
+        right-width: 1px;
+        top-width: 1px;
+        bottom-width: 1px;
+        left-width: 1px;
+      }
+
+      .friends {
+        height: 8%;
+        background-color: #F9F9F9;
+
+        @include flex() {
+          flex-direction: column;
+        }
+      }
+
+    }
+  }
 }
 
 .msg-list {
   width: 100%;
   height: 80%;
   overflow-x: auto;
-}
 
-.msg-list .msg-item {
-  display: flex;
-  margin-top: 20px;
-}
+  .msg-item {
+    display: flex;
+    margin-top: 20px;
 
-.msg-list .msg-item:last-child {
-  margin-bottom: 20px;
-}
+    &:last-child {
+      margin-bottom: 20px;
+    }
 
-.msg-list .self {
-  justify-content: flex-end;
-}
+    .msg-pop {
+      position: relative;
+      width: auto;
+      margin-top: 5px;
+      padding: 10px 10px;
+      box-sizing: border-box;
+      background-color: var(--pop-color);
+      border-radius: $border-radius-large;
 
-.msg-list .others.msg-item {
-  padding-right: 50px;
-  padding-left: 20px;
-}
+      word: {
+        break: break-word;
+        wrap: break-word;
+      }
+    }
 
-.msg-list .self.msg-item {
-  padding-right: 20px;
-  padding-left: 50px;
-}
+    .avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+    }
 
-.msg-list .others .left {
-  width: 12%;
-}
+    .msg-holder {
+      text-align: right;
+    }
+  }
 
-.msg-list .others .right {
-  width: 88%;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  align-content: center;
-}
+  .self {
+    justify-content: flex-end;
 
-.msg-list .self .right {
-  text-align: right;
-  width: 12%;
-}
+    &.msg-item {
+      padding: {
+        right: 20px;
+        left: 50px;
+      }
+    }
 
-.msg-list .self .left {
-  width: 88%;
-  display: flex;
-  flex-direction: column;
-  align-content: center;
-  justify-content: center;
-  align-items: flex-end;
-}
+    .right {
+      text-align: right;
+      width: 12%;
+    }
 
-.msg-list .self .left .msg-holder {
-  text-align: right;
-}
+    .left {
+      width: 88%;
 
-.msg-list .msg-pop {
-  width: auto;
-  margin-top: 5px;
-  background-color: var(--pop-color);
-  padding: 10px 10px;
-  box-sizing: border-box;
-  border-radius: 8px;
-  word-break: break-word;
-  word-wrap: break-word;
-  position: relative;
-}
+      @include flex($align-items: flex-end) {
+        flex-direction: column;
+      }
+    }
 
-.msg-list .others .msg-pop::before {
-  position: absolute;
-  content: "";
-  top: 10px;
-  left: -10px;
-  border-top: 2px solid transparent;
-  border-right: 12px solid var(--pop-color);
-  border-bottom: 10px solid transparent;
-}
+    .msg-pop::after {
+      position: absolute;
+      content: "";
+      top: 10px;
+      right: -10px;
 
-.msg-list .self .msg-pop::after {
-  position: absolute;
-  content: "";
-  top: 10px;
-  right: -10px;
-  border-top: 2px solid transparent;
-  border-left: 12px solid var(--pop-color);
-  border-bottom: 10px solid transparent;
-}
+      border: {
+        top: 2px solid transparent;
+        left: 12px solid var(--pop-color);
+        bottom: 10px solid transparent;
+      }
+    }
+  }
 
-.msg-list .avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
+  .others {
+    justify-content: flex-start;
+
+    &.msg-item {
+      padding: {
+        right: 50px;
+        left: 20px;
+      }
+    }
+
+    .left {
+      width: 12%;
+    }
+
+    .right {
+      width: 88%;
+
+      @include flex($align-items: flex-start) {
+        flex-direction: column;
+      }
+    }
+
+    .msg-pop::before {
+      position: absolute;
+      content: "";
+      top: 10px;
+      left: -10px;
+
+      border: {
+        top: 2px solid transparent;
+        right: 12px solid var(--pop-color);
+        bottom: 10px solid transparent;
+      }
+    }
+  }
 }
 </style>
