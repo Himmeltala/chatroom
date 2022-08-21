@@ -49,7 +49,7 @@ defineProps({
     right-width: 0;
     top-width: 1px;
     bottom-width: 1px;
-    radius: 4px;
+    radius: $border-radius-small;
     color: $border-color;
     style: solid;
   }

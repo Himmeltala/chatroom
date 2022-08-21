@@ -51,6 +51,19 @@ function reload() {
 
 <style scoped lang="scss">
 .right-menus {
+  height: 100%;
+
+  border: {
+    radius: $border-radius-small;
+    style: solid;
+    width: 1px;
+    color: $border-color;
+    top-width: 1px;
+    bottom-width: 1px;
+    right-width: 1px;
+    left-width: 0;
+  }
+
   .friends {
     padding: 10px;
     box-sizing: border-box;

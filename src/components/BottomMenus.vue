@@ -57,7 +57,7 @@ function sendText() {
       outline: none;
       padding: 4px;
       border: 1px solid $border-color;
-      border-radius: 4px;
+      border-radius: $border-radius-small;
       overflow-x: auto;
       transition: 0.6s ease;
       box-sizing: border-box;

@@ -65,15 +65,15 @@ function logon() {
   .content {
     background-color: white;
     width: 400px;
-    border-radius: 10px;
-    border: 1px solid #E7E7E7;
+    border-radius: $border-radius-large;
+    border: 1px solid $border-color;
     padding: 75px 60px;
 
     .input-box {
       margin-bottom: 40px;
-      border: 1px solid #E7E7E7;
+      border: 1px solid $border-color;
       padding: 10px 10px;
-      border-radius: 10px;
+      border-radius: $border-radius-large;
 
       .label {
         width: 15%;
