@@ -1,5 +1,5 @@
 import { AxiosRequestConfig } from "axios";
-import { request } from "@/apis";
+import { request } from "@/apis/config";
 import UserModel from "@/models/userModel";
 
 export interface NormalizeAxiosSuccess {
@@ -21,51 +21,48 @@ export interface NormalizeAxiosOptions {
   config?: AxiosRequestConfig;
 }
 
-interface NormalizeCluase {
-  (data: any): boolean;
-}
-
-function handleAxiosThen(
-  res: NormalizeResponse,
-  success?: NormalizeAxiosSuccess,
-  error?: NormalizeAxiosError,
-  cluase?: NormalizeCluase
-): void {
-  if (res.status == 200 && (cluase ? cluase(res.data) : true)) {
-    success ? success(res) : "";
-  } else {
-    error ? error(res) : "";
-  }
-}
-
 export function normalizeGet(
   ops: NormalizeAxiosOptions,
   success?: NormalizeAxiosSuccess,
-  error?: NormalizeAxiosError,
-  cluase?: NormalizeCluase
-): void {
-  request
-    .get(ops.url, ops.config)
-    .then(({ data: response }) => {
-      handleAxiosThen(response, success, error, cluase);
-    })
-    .catch(err => {
-      error ? error(err) : "";
-    });
+  error?: NormalizeAxiosError
+): any {
+  if (success || error) {
+    return request
+      .get(ops.url, ops.config)
+      .then(({ data: res }) => {
+        if (res.status == 200) {
+          success ? success(res) : "";
+        } else {
+          error ? error(res) : "";
+        }
+      })
+      .catch(err => {
+        error ? error(err) : "";
+      });
+  } else {
+    return request.get(ops.url, ops.config);
+  }
 }
 
 export function normalizePost(
   ops: NormalizeAxiosOptions,
   success?: NormalizeAxiosSuccess,
-  error?: NormalizeAxiosError,
-  cluase?: NormalizeCluase
-): void {
-  request
-    .post(ops.url, ops.data, ops.config)
-    .then(({ data: response }) => {
-      handleAxiosThen(response, success, error, cluase);
-    })
-    .catch(err => {
-      error ? error(err) : "";
-    });
+  error?: NormalizeAxiosError
+): any {
+  if (success || error) {
+    return request
+      .post(ops.url, ops.data, ops.config)
+      .then(({ data: res }) => {
+        if (res.status == 200) {
+          success ? success(res) : "";
+        } else {
+          error ? error(res) : "";
+        }
+      })
+      .catch(err => {
+        error ? error(err) : "";
+      });
+  } else {
+    return request.post(ops.url, ops.data, ops.config);
+  }
 }

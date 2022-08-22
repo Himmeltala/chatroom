@@ -5,30 +5,30 @@ export function checkUser(
   data: UserModel,
   success?: NormalizeAxiosSuccess,
   error?: NormalizeAxiosError
-) {
-  normalizePost({ url: "/login", data, config: { withCredentials: true } }, success, error);
+): any {
+  return normalizePost({ url: "/login", data, config: { withCredentials: true } }, success, error);
 }
 
 export function updateUser(
   data: UserModel,
   success?: NormalizeAxiosSuccess,
   error?: NormalizeAxiosError
-) {
-  normalizePost({ url: "/update/user", data }, success, error);
+): any {
+  return normalizePost({ url: "/update/user", data }, success, error);
 }
 
 export function queryFriends(
   data: UserModel,
-  success: NormalizeAxiosSuccess,
+  success?: NormalizeAxiosSuccess,
   error?: NormalizeAxiosError
-) {
-  normalizePost({ url: "/query/friends", data }, success, error);
+): any {
+  return normalizePost({ url: "/query/friends", data }, success, error);
 }
 
 export function queryGroups(
   data: UserModel,
-  success: NormalizeAxiosSuccess,
+  success?: NormalizeAxiosSuccess,
   error?: NormalizeAxiosError
-) {
-  normalizePost({ url: "/query/groups", data }, success, error);
+): any {
+  return normalizePost({ url: "/query/groups", data }, success, error);
 }

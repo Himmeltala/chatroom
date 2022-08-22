@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import { io } from "socket.io-client";
 import { useCookies } from "@vueuse/integrations/useCookies";
-import { updateUser, queryFriends, queryGroups } from "@/apis/userApi";
+import { userApis, request } from "@/apis";
 import { Message } from "@/typescript/standard";
 import UserModel from "@/models/userModel";
 import GroupModel from "@/models/groupModel";
@@ -18,13 +18,15 @@ let groups = ref<Array<GroupModel>>([]);
 
 onMounted(() => {
   socket.on("connect", () => {
-    updateUser({ socket_id: socket.id, id: cookie.id, is_online: 1 }, () => {
-      queryFriends({ id: cookie.id }, ({ data }) => {
-        friends.value = data;
-      });
-      queryGroups({ id: cookie.id }, ({ data }) => {
-        groups.value = data;
-      });
+    userApis.updateUser({ socket_id: socket.id, id: cookie.id, is_online: 1 }, () => {
+      request
+        .all([userApis.queryFriends({ id: cookie.id }), userApis.queryGroups({ id: cookie.id })])
+        .then(
+          request.spread(({ data: res1 }, { data: res2 }) => {
+            friends.value = res1.data;
+            groups.value = res2.data;
+          })
+        );
     });
   });
 
@@ -53,7 +55,7 @@ let content = ref<string>("");
 let buddy = ref<UserModel>({});
 
 function onReloadFriends(onSuccess: Function, onError: Function) {
-  queryFriends(
+  userApis.queryFriends(
     { id: cookie.id },
     ({ data }) => {
       friends.value = data;
@@ -66,7 +68,7 @@ function onReloadFriends(onSuccess: Function, onError: Function) {
 }
 
 function onReloadGroups(onSuccess: Function, onError: Function) {
-  queryGroups(
+  userApis.queryGroups(
     { id: cookie.id },
     ({ data }) => {
       groups.value = data;
@@ -76,7 +78,6 @@ function onReloadGroups(onSuccess: Function, onError: Function) {
       onError();
     }
   );
-  // ...
 }
 </script>
 
