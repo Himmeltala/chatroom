@@ -6,7 +6,7 @@ defineProps({
     type: String,
     default: "13%"
   },
-  isDisabled: {
+  disabled: {
     type: Boolean,
     default: false
   }
@@ -34,7 +34,7 @@ function sendText() {
   <div class="bottom-menus" :style="{ height: height }">
     <div class="menus-box">
       <div class="textarea" contenteditable="true" v-text="text" @input="textChange"></div>
-      <el-button :disabled="isDisabled" class="btn" @click="sendText">发送</el-button>
+      <el-button :disabled="disabled" class="btn" @click="sendText">发送</el-button>
     </div>
   </div>
 </template>

@@ -1,26 +1,29 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { io } from "socket.io-client";
-import { updateUser, queryFriends } from "../apis/userApi";
-import { Message } from "../typescript/standard";
-import { UserModel } from "../models/userModel";
 import { useCookies } from "@vueuse/integrations/useCookies";
+import { updateUser, queryFriends, queryGroups } from "@/apis/userApi";
+import { Message } from "@/typescript/standard";
+import UserModel from "@/models/userModel";
+import GroupModel from "@/models/groupModel";
 
-const socket = io("http://localhost:3000");
-const methods: any = {};
+let socket = io("http://localhost:3000");
+let cookie = useCookies().get("USERINFO");
+let methods: any = {};
 let msgList = ref<Array<Message>>([]);
 let msgListDom = ref<any>(null);
 let configs = ref();
-let content = ref<string>("");
 let friends = ref<Array<UserModel>>([]);
-let pitchBuddy = ref<UserModel>({});
-let cookie = useCookies().get("USERINFO");
+let groups = ref<Array<GroupModel>>([]);
 
 onMounted(() => {
   socket.on("connect", () => {
     updateUser({ socket_id: socket.id, id: cookie.id, is_online: 1 }, () => {
       queryFriends({ id: cookie.id }, ({ data }) => {
         friends.value = data;
+      });
+      queryGroups({ id: cookie.id }, ({ data }) => {
+        groups.value = data;
       });
     });
   });
@@ -31,7 +34,14 @@ onMounted(() => {
   });
 
   methods.onSendText = (text: string) => {
-    let message = new Message(cookie.username, text, cookie.avatar, configs.value.popColor, "others", pitchBuddy.value.socket_id);
+    let message = new Message(
+      cookie.username,
+      text,
+      cookie.avatar,
+      configs.value.popColor,
+      "others",
+      buddy.value.socket_id
+    );
     socket.emit("emit-private", message);
     message.type = "self";
     msgList.value.push(message);
@@ -39,10 +49,34 @@ onMounted(() => {
   };
 });
 
-function onReload() {
-  queryFriends({ id: cookie.id }, ({ data }) => {
-    friends.value = data;
-  });
+let content = ref<string>("");
+let buddy = ref<UserModel>({});
+
+function onReloadFriends(onSuccess: Function, onError: Function) {
+  queryFriends(
+    { id: cookie.id },
+    ({ data }) => {
+      friends.value = data;
+      onSuccess();
+    },
+    () => {
+      onError();
+    }
+  );
+}
+
+function onReloadGroups(onSuccess: Function, onError: Function) {
+  queryGroups(
+    { id: cookie.id },
+    ({ data }) => {
+      groups.value = data;
+      onSuccess();
+    },
+    () => {
+      onError();
+    }
+  );
+  // ...
 }
 </script>
 
@@ -52,10 +86,10 @@ function onReload() {
       <ConfigMenus @on-change="(e: any) => (configs = e)" @on-init="(e: any) => (configs = e)" />
       <div class="content">
         <div class="friends">
-          <div class="username">{{ pitchBuddy.username }}</div>
+          <div class="username">{{ buddy.username }}</div>
           <div class="is-online">
-            <template v-if="pitchBuddy.username">
-              <template v-if="pitchBuddy.is_online === 1">在线</template>
+            <template v-if="buddy.username">
+              <template v-if="buddy.is_online === 1">在线</template>
               <template v-else>离线</template>
             </template>
             <template v-else>未选择好友</template>
@@ -79,9 +113,19 @@ function onReload() {
             </template>
           </div>
         </div>
-        <BottomMenus :is-disabled="!pitchBuddy.username" :height="'12%'" @on-send-text="methods.onSendText" @on-text-changed="(e: any) => content = e" />
+        <BottomMenus
+          :height="'12%'"
+          :disabled="!buddy.username"
+          @on-send-text="methods.onSendText"
+          @on-text-changed="(e: any) => content = e" />
       </div>
-      <RightMenus @on-reload="onReload" :data="friends" @on-select-friend="(e: any) => pitchBuddy = e" />
+      <RightMenus
+        :friends="friends"
+        :groups="groups"
+        @on-reload-friends="onReloadFriends"
+        @on-reload-groups="onReloadGroups"
+        @on-select-group="onReloadGroups"
+        @on-select-friend="(e: any) => buddy = e" />
     </div>
   </div>
 </template>

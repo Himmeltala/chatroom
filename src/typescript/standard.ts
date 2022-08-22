@@ -6,7 +6,14 @@ export class Message {
   public type?: string;
   public socket_id?: string;
 
-  constructor(username: string, text: string, avatar: string, popColor: string, type?: string, socketId?: string) {
+  constructor(
+    username: string,
+    text: string,
+    avatar: string,
+    popColor: string,
+    type?: string,
+    socketId?: string
+  ) {
     this.username = username;
     this.text = text;
     this.avatar = avatar;

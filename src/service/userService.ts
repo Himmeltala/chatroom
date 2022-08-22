@@ -1,6 +1,6 @@
 import { AxiosRequestConfig } from "axios";
-import { request } from "../apis";
-import { UserModel } from "../models/userModel";
+import { request } from "@/apis";
+import UserModel from "@/models/userModel";
 
 export interface NormalizeAxiosSuccess {
   (response: NormalizeResponse): void;
@@ -25,7 +25,12 @@ interface NormalizeCluase {
   (data: any): boolean;
 }
 
-function handleAxiosThen(res: NormalizeResponse, success?: NormalizeAxiosSuccess, error?: NormalizeAxiosError, cluase?: NormalizeCluase): void {
+function handleAxiosThen(
+  res: NormalizeResponse,
+  success?: NormalizeAxiosSuccess,
+  error?: NormalizeAxiosError,
+  cluase?: NormalizeCluase
+): void {
   if (res.status == 200 && (cluase ? cluase(res.data) : true)) {
     success ? success(res) : "";
   } else {
@@ -33,7 +38,12 @@ function handleAxiosThen(res: NormalizeResponse, success?: NormalizeAxiosSuccess
   }
 }
 
-export function normalizeGet(ops: NormalizeAxiosOptions, success?: NormalizeAxiosSuccess, error?: NormalizeAxiosError, cluase?: NormalizeCluase): void {
+export function normalizeGet(
+  ops: NormalizeAxiosOptions,
+  success?: NormalizeAxiosSuccess,
+  error?: NormalizeAxiosError,
+  cluase?: NormalizeCluase
+): void {
   request
     .get(ops.url, ops.config)
     .then(({ data: response }) => {
@@ -44,7 +54,12 @@ export function normalizeGet(ops: NormalizeAxiosOptions, success?: NormalizeAxio
     });
 }
 
-export function normalizePost(ops: NormalizeAxiosOptions, success?: NormalizeAxiosSuccess, error?: NormalizeAxiosError, cluase?: NormalizeCluase): void {
+export function normalizePost(
+  ops: NormalizeAxiosOptions,
+  success?: NormalizeAxiosSuccess,
+  error?: NormalizeAxiosError,
+  cluase?: NormalizeCluase
+): void {
   request
     .post(ops.url, ops.data, ops.config)
     .then(({ data: response }) => {

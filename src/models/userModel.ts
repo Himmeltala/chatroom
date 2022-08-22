@@ -1,4 +1,4 @@
-export interface UserModel {
+interface UserModel {
   id?: number;
   is_online?: number;
   socket_id?: string;
@@ -15,3 +15,5 @@ export interface UserModel {
   constellation?: string;
   sex?: string;
 }
+
+export default UserModel;

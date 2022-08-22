@@ -5,10 +5,6 @@ interface normalizeCheckedCookieReturn {
   isExsit: boolean;
 }
 
-interface normalizeExist {
-  (e: any): any;
-}
-
 export function checkCookie(name: string): normalizeCheckedCookieReturn {
   let result = <normalizeCheckedCookieReturn>{};
   let cookie = useCookies().get(name);
