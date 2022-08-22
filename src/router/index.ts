@@ -9,25 +9,30 @@ const routes = [
       {
         path: "login",
         name: "Login",
-        component: () => import("@/views/Login.vue"),
+        component: () => import("@/views/Login.vue")
       },
       {
         path: "logon",
         name: "Logon",
-        component: () => import("@/views/Logon.vue"),
+        component: () => import("@/views/Logon.vue")
       },
       {
         path: "chat",
         name: "Chat",
-        component: () => import("@/views/ChatRoom.vue"),
+        component: () => import("@/views/ChatRoom.vue")
       },
-    ],
-  },
+      {
+        path: "test",
+        name: "Test",
+        component: () => import("@/views/Test.vue")
+      }
+    ]
+  }
 ];
 
 const router = createRouter({
   history: createWebHashHistory("/"),
-  routes,
+  routes
 });
 
 router.beforeEach((to, from, next) => {

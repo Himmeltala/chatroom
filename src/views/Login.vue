@@ -5,20 +5,20 @@ import { checkUser } from "../apis/userApi";
 import { ElMessage } from "element-plus";
 
 const router = useRouter();
-let data = ref({ username: "", password: "" });
+let user = ref({ username: "", password: "" });
 
 function test(data: any) {
-  let p1 = /^[a-zA-Z0-9]{2,14}$/;
-  let p2 = /^[a-zA-Z0-9]{6,16}$/;
-  return p1.test(data.username) && p2.test(data.password);
+  let u = /^[a-zA-Z0-9]{2,14}$/;
+  let p = /^[a-zA-Z0-9]{6,16}$/;
+  return u.test(data.username) && p.test(data.password);
 }
 
 function login() {
-  if (!test(data.value)) {
+  if (!test(user.value)) {
     ElMessage({ message: "密码或用户名不符合规范！", type: "error" });
   } else {
     checkUser(
-      data.value,
+      user.value,
       () => {
         ElMessage({ message: "登陆成功！", type: "success" });
         router.push("/chat");
@@ -30,9 +30,7 @@ function login() {
   }
 }
 
-function logon() {
-
-}
+function logon() {}
 </script>
 
 <template>
@@ -40,19 +38,17 @@ function logon() {
     <div class="content">
       <div class="input-box uname-int">
         <div class="label">账号</div>
-        <input class="input" v-model="data.username" />
+        <input class="input" v-model="user.username" />
       </div>
       <div class="input-box pwd-int">
         <div class="label">密码</div>
-        <input type="password" class="input" v-model="data.password" />
+        <input type="password" class="input" v-model="user.password" />
       </div>
       <div class="submit-btn">
         <el-button class="btn" @click="logon">注册</el-button>
         <el-button class="btn" type="primary" @click="login">登陆</el-button>
       </div>
-      <div class="other-box">
-
-      </div>
+      <div class="other-box"></div>
     </div>
   </div>
 </template>
@@ -102,7 +98,7 @@ function logon() {
 .login,
 .input-box,
 .submit-btn,
-.input-box>.label {
+.input-box > .label {
   @include flex();
 }
 </style>

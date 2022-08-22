@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { ElMessage } from "element-plus";
 
-let text = ref("");
-
-const props = defineProps({
+defineProps({
   height: {
     type: String,
     default: "13%"
@@ -20,8 +17,10 @@ const emits = defineEmits<{
   (e: "onTextChanged", text: string): void;
 }>();
 
-function textChanged(e: any) {
-  text.value = e.target.innerText;
+let text = ref("");
+
+function textChange(event: any) {
+  text.value = event.target.innerText;
   emits("onTextChanged", text.value);
 }
 
@@ -32,9 +31,9 @@ function sendText() {
 </script>
 
 <template>
-  <div class="bottom-menus" :style="{ 'height': height }">
+  <div class="bottom-menus" :style="{ height: height }">
     <div class="menus-box">
-      <div class="textarea" contenteditable="true" v-text="text" @input="textChanged"></div>
+      <div class="textarea" contenteditable="true" v-text="text" @input="textChange"></div>
       <el-button :disabled="isDisabled" class="btn" @click="sendText">发送</el-button>
     </div>
   </div>

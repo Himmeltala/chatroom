@@ -14,12 +14,8 @@ defineProps({
 
 const emits = defineEmits<{
   (e: "onSelectFriend", value: UserModel): void;
-  (e: "onReload"): void
+  (e: "onReload"): void;
 }>();
-
-function selectFriend(item: UserModel) {
-  emits("onSelectFriend", item);
-}
 
 function reload() {
   emits("onReload");
@@ -28,13 +24,13 @@ function reload() {
 </script>
 
 <template>
-  <div class="right-menus" :style="{ 'width': width }">
+  <div class="right-menus" :style="{ width: width }">
     <div class="friends">
       <div class="reload-btn">
         <el-button plain size="small" @click="reload">刷新好友列表</el-button>
       </div>
       <template v-for="item in data">
-        <div class="item" @click="selectFriend(item)">
+        <div class="item" @click="emits('onSelectFriend', item)">
           <div class="left">
             <div class="status" v-if="item.is_online !== 0"></div>
             <img class="avatar" :src="item.avatar" :class="item.is_online === 0 ? 'outline' : ''" alt="avatar" />
@@ -75,7 +71,7 @@ function reload() {
   }
 
   .reload-btn {
-    &>button {
+    & > button {
       width: 100%;
     }
   }
@@ -92,7 +88,7 @@ function reload() {
         width: 10px;
         height: 10px;
         border-radius: 50%;
-        background-color: #54ED39;
+        background-color: #54ed39;
         position: absolute;
         right: 0;
         bottom: 0;

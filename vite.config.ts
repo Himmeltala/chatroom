@@ -10,15 +10,15 @@ export default defineConfig({
   plugins: [
     vue(),
     AutoImport({
-      resolvers: [ElementPlusResolver(), LayuiVueResolver()],
+      resolvers: [ElementPlusResolver(), LayuiVueResolver()]
     }),
     Components({
-      resolvers: [ElementPlusResolver(), LayuiVueResolver()],
+      resolvers: [ElementPlusResolver(), LayuiVueResolver()]
     }),
-    ElementPlus({}),
+    ElementPlus({})
   ],
   resolve: {
-    alias: { "@": path.resolve(__dirname, "src") },
+    alias: { "@": path.resolve(__dirname, "src") }
   },
   css: {
     preprocessorOptions: {
@@ -26,8 +26,8 @@ export default defineConfig({
         additionalData: `
           @import '@/assets/styles/variables.scss';
           @import '@/assets/styles/mixins.scss';
-        `,
-      },
-    },
-  },
+        `
+      }
+    }
+  }
 });

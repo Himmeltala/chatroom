@@ -8,15 +8,16 @@ let configs = reactive({
 });
 
 const emits = defineEmits<{
-  (e: "onChange", value: ConfigMenusData): void,
-  (e: "onInit", value: ConfigMenusData): void
+  (e: "onChange", value: ConfigMenusData): void;
+  (e: "onInit", value: ConfigMenusData): void;
 }>();
 
 watch(
   () => configs,
-  (value) => {
+  value => {
     emits("onChange", value);
-  }, { deep: true }
+  },
+  { deep: true }
 );
 
 emits("onInit", configs);
@@ -30,7 +31,7 @@ defineProps({
 </script>
 
 <template>
-  <div class="config-menus" :style="{ 'width': width }">
+  <div class="config-menus" :style="{ width: width }">
     <div class="cfig-item popup-color">
       <div class="label">气泡色</div>
       <lay-color-picker v-model="configs.popColor" :preset="resets"></lay-color-picker>
@@ -53,7 +54,6 @@ defineProps({
     color: $border-color;
     style: solid;
   }
-
 
   .cfig-item {
     margin-bottom: 15px;

@@ -8,13 +8,12 @@ import { useCookies } from "@vueuse/integrations/useCookies";
 
 const socket = io("http://localhost:3000");
 const methods: any = {};
+let msgList = ref<Array<Message>>([]);
+let msgListDom = ref<any>(null);
 let configs = ref();
-let inputText = ref<string>("");
-let msgList = ref<Array<Message>>([]); // 消息列表
-let msgListDOM = ref<any>(null); // 模板引用
-let friends = ref<Array<UserModel>>([]); // 好友列表
-let selectedBuddy = ref<UserModel>({});
-
+let content = ref<string>("");
+let friends = ref<Array<UserModel>>([]);
+let pitchBuddy = ref<UserModel>({});
 let cookie = useCookies().get("USERINFO");
 
 onMounted(() => {
@@ -26,35 +25,19 @@ onMounted(() => {
     });
   });
 
-  socket.on("echo-private", (e) => {
-    msgList.value.push(e);
-    msgListDOM.value.scrollTop = msgListDOM.value.scrollHeight;
+  socket.on("echo-private", message => {
+    msgList.value.push(message);
+    msgListDom.value.scrollTop = msgListDom.value.scrollHeight;
   });
 
   methods.onSendText = (text: string) => {
-    let message = new Message(cookie.username, text, cookie.avatar, configs.value.popColor, "others", selectedBuddy.value.socket_id);
+    let message = new Message(cookie.username, text, cookie.avatar, configs.value.popColor, "others", pitchBuddy.value.socket_id);
     socket.emit("emit-private", message);
     message.type = "self";
     msgList.value.push(message);
-    msgListDOM.value.scrollTop = msgListDOM.value.scrollHeight;
+    msgListDom.value.scrollTop = msgListDom.value.scrollHeight;
   };
 });
-
-function onConfigMenusDataChange(e: any) {
-  configs.value = e;
-}
-
-function onConfigMenusInit(e: any) {
-  configs.value = e;
-}
-
-function onTextChanged(e: string) {
-  inputText.value = e;
-}
-
-function onSelectFriend(e: UserModel) {
-  selectedBuddy.value = e;
-}
 
 function onReload() {
   queryFriends({ id: cookie.id }, ({ data }) => {
@@ -66,19 +49,19 @@ function onReload() {
 <template>
   <div class="chatroom">
     <div class="wrapper">
-      <ConfigMenus @on-change="onConfigMenusDataChange" @on-init="onConfigMenusInit" />
+      <ConfigMenus @on-change="(e: any) => (configs = e)" @on-init="(e: any) => (configs = e)" />
       <div class="content">
         <div class="friends">
-          <div class="username">{{ selectedBuddy.username }}</div>
+          <div class="username">{{ pitchBuddy.username }}</div>
           <div class="is-online">
-            <template v-if="selectedBuddy.username">
-              <template v-if="selectedBuddy.is_online === 1">在线</template>
+            <template v-if="pitchBuddy.username">
+              <template v-if="pitchBuddy.is_online === 1">在线</template>
               <template v-else>离线</template>
             </template>
             <template v-else>未选择好友</template>
           </div>
         </div>
-        <div class="msg-list" ref="msgListDOM">
+        <div class="msg-list" ref="msgListDom">
           <div class="msg-item" :class="msg.type" v-for="(msg, key) in msgList" :key="key">
             <template v-if="msg.type === 'self'">
               <div class="left">
@@ -96,12 +79,9 @@ function onReload() {
             </template>
           </div>
         </div>
-        <BottomMenus :is-disabled="!selectedBuddy.username" :height="'12%'" @on-send-text="methods.onSendText"
-          @on-text-changed="onTextChanged" />
+        <BottomMenus :is-disabled="!pitchBuddy.username" :height="'12%'" @on-send-text="methods.onSendText" @on-text-changed="(e: any) => content = e" />
       </div>
-      <RightMenus @on-reload="onReload" :data="friends" @on-select-friend="onSelectFriend">
-        <div>Hello World!</div>
-      </RightMenus>
+      <RightMenus @on-reload="onReload" :data="friends" @on-select-friend="(e: any) => pitchBuddy = e" />
     </div>
   </div>
 </template>
@@ -114,7 +94,7 @@ function onReload() {
 
   .wrapper {
     background-color: white;
-    color: #4D4949;
+    color: #4d4949;
     width: 1100px;
     height: 580px;
     @include flex(space-between, $align-items: flex-start);
@@ -135,13 +115,12 @@ function onReload() {
 
       .friends {
         height: 8%;
-        background-color: #F9F9F9;
+        background-color: #f9f9f9;
 
         @include flex() {
           flex-direction: column;
         }
       }
-
     }
   }
 }

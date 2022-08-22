@@ -39,7 +39,7 @@ export function normalizeGet(ops: NormalizeAxiosOptions, success?: NormalizeAxio
     .then(({ data: response }) => {
       handleAxiosThen(response, success, error, cluase);
     })
-    .catch((err) => {
+    .catch(err => {
       error ? error(err) : "";
     });
 }
@@ -50,7 +50,7 @@ export function normalizePost(ops: NormalizeAxiosOptions, success?: NormalizeAxi
     .then(({ data: response }) => {
       handleAxiosThen(response, success, error, cluase);
     })
-    .catch((err) => {
+    .catch(err => {
       error ? error(err) : "";
     });
 }
