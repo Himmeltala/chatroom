@@ -1,6 +1,6 @@
 import { AxiosRequestConfig } from "axios";
-import { request } from "@/apis/config";
-import UserModel from "@/models/userModel";
+import { request } from "@/apis";
+import { UserModel } from "@/models";
 
 export interface NormalizeAxiosSuccess {
   (response: NormalizeResponse): void;
@@ -31,13 +31,13 @@ export function normalizeGet(
       .get(ops.url, ops.config)
       .then(({ data: res }) => {
         if (res.status == 200) {
-          success ? success(res) : "";
+          success && success(res);
         } else {
-          error ? error(res) : "";
+          error && error(res);
         }
       })
       .catch(err => {
-        error ? error(err) : "";
+        error && error(err);
       });
   } else {
     return request.get(ops.url, ops.config);
@@ -54,13 +54,13 @@ export function normalizePost(
       .post(ops.url, ops.data, ops.config)
       .then(({ data: res }) => {
         if (res.status == 200) {
-          success ? success(res) : "";
+          success && success(res);
         } else {
-          error ? error(res) : "";
+          error && error(res);
         }
       })
       .catch(err => {
-        error ? error(err) : "";
+        error && error(err);
       });
   } else {
     return request.post(ops.url, ops.data, ops.config);

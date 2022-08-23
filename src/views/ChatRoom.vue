@@ -2,10 +2,9 @@
 import { onMounted, ref } from "vue";
 import { io } from "socket.io-client";
 import { useCookies } from "@vueuse/integrations/useCookies";
-import { userApis, request } from "@/apis";
 import { Message } from "@/typescript/standard";
-import UserModel from "@/models/userModel";
-import GroupModel from "@/models/groupModel";
+import { userApis, request } from "@/apis";
+import { UserModel, GroupModel } from "@/models";
 
 let socket = io("http://localhost:3000");
 let cookie = useCookies().get("USERINFO");
@@ -16,43 +15,63 @@ let configs = ref();
 let friends = ref<Array<UserModel>>([]);
 let groups = ref<Array<GroupModel>>([]);
 
-onMounted(() => {
-  socket.on("connect", () => {
-    userApis.updateUser({ socket_id: socket.id, id: cookie.id, is_online: 1 }, () => {
-      request
-        .all([userApis.queryFriends({ id: cookie.id }), userApis.queryGroups({ id: cookie.id })])
-        .then(
-          request.spread(({ data: res1 }, { data: res2 }) => {
-            friends.value = res1.data;
-            groups.value = res2.data;
-          })
-        );
-    });
+socket.on("connect", () => {
+  userApis.updateUser({ socket_id: socket.id, id: cookie.id, is_online: 1 }, () => {
+    request
+      .all([userApis.queryFriends({ id: cookie.id }), userApis.queryGroups({ id: cookie.id })])
+      .then(
+        request.spread(({ data: res1 }, { data: res2 }) => {
+          friends.value = res1.data;
+          groups.value = res2.data;
+        })
+      );
   });
+});
 
+onMounted(() => {
   socket.on("echo-private", message => {
     msgList.value.push(message);
     msgListDom.value.scrollTop = msgListDom.value.scrollHeight;
   });
 
-  methods.onSendText = (text: string) => {
-    let message = new Message(
-      cookie.username,
-      text,
-      cookie.avatar,
-      configs.value.popColor,
-      "others",
-      buddy.value.socket_id
-    );
-    socket.emit("emit-private", message);
-    message.type = "self";
+  socket.on("echo-public", message => {
     msgList.value.push(message);
+    msgListDom.value.scrollTop = msgListDom.value.scrollHeight;
+  });
+
+  methods.onSendText = (text: string) => {
+    if (nowType.value.friend) {
+      let message = new Message(
+        cookie.username,
+        text,
+        cookie.avatar,
+        configs.value.popColor,
+        "others",
+        selectFriend.value.socket_id
+      );
+      socket.emit("emit-private", message);
+      message.type = "self";
+      msgList.value.push(message);
+    } else {
+      let message = new Message(
+        cookie.username,
+        text,
+        cookie.avatar,
+        configs.value.popColor,
+        "others",
+        selectedGroup.value.room_id
+      );
+      socket.emit("emit-public", message);
+      message.type = "self";
+      msgList.value.push(message);
+    }
     msgListDom.value.scrollTop = msgListDom.value.scrollHeight;
   };
 });
 
 let content = ref<string>("");
-let buddy = ref<UserModel>({});
+let selectFriend = ref<UserModel>({});
+let selectedGroup = ref<GroupModel>({});
 
 function onReloadFriends(onSuccess: Function, onError: Function) {
   userApis.queryFriends(
@@ -79,6 +98,22 @@ function onReloadGroups(onSuccess: Function, onError: Function) {
     }
   );
 }
+
+let nowType = ref<{
+  group?: boolean;
+  friend?: boolean;
+}>({ friend: true, group: false });
+
+function onSelectedGroup(e: GroupModel) {
+  socket.emit("emit-join-public", { socket_id: socket.id, room_id: e.room_id });
+  selectedGroup.value = e;
+  nowType.value = { group: true, friend: false };
+}
+
+function onSelectFriend(e: UserModel) {
+  selectFriend.value = e;
+  nowType.value = { group: false, friend: true };
+}
 </script>
 
 <template>
@@ -86,21 +121,31 @@ function onReloadGroups(onSuccess: Function, onError: Function) {
     <div class="wrapper">
       <ConfigMenus @on-change="(e: any) => (configs = e)" @on-init="(e: any) => (configs = e)" />
       <div class="content">
-        <div class="friends">
-          <div class="username">{{ buddy.username }}</div>
-          <div class="is-online">
-            <template v-if="buddy.username">
-              <template v-if="buddy.is_online === 1">在线</template>
-              <template v-else>离线</template>
-            </template>
-            <template v-else>未选择好友</template>
+        <!-- start -->
+        <template v-if="nowType.friend === true">
+          <div class="friends">
+            <div class="username">{{ selectFriend.username }}</div>
+            <div class="is-online">
+              <template v-if="selectFriend.username">
+                <template v-if="selectFriend.is_online === 1">在线</template>
+                <template v-else>离线</template>
+              </template>
+              <template v-else>未选择好友</template>
+            </div>
           </div>
-        </div>
+        </template>
+        <template v-else>
+          <div class="friends">
+            <div class="username">{{ selectedGroup.name }}</div>
+          </div>
+        </template>
         <div class="msg-list" ref="msgListDom">
           <div class="msg-item" :class="msg.type" v-for="(msg, key) in msgList" :key="key">
             <template v-if="msg.type === 'self'">
               <div class="left">
-                <!-- <div class="msg-holder">{{ msg.username }}</div> -->
+                <template v-if="nowType.group">
+                  <div class="msg-holder">{{ msg.username }}</div>
+                </template>
                 <div class="msg-pop" :style="{ '--pop-color': msg.popColor }">{{ msg.text }}</div>
               </div>
               <div class="right"><img class="avatar" :src="msg.avatar" alt="oops!" /></div>
@@ -108,15 +153,17 @@ function onReloadGroups(onSuccess: Function, onError: Function) {
             <template v-else>
               <div class="left"><img class="avatar" :src="msg.avatar" alt="oops!" /></div>
               <div class="right">
-                <!-- <div class="msg-holder">{{ msg.username }}</div> -->
+                <template v-if="nowType.group">
+                  <div class="msg-holder">{{ msg.username }}</div>
+                </template>
                 <div class="msg-pop" :style="{ '--pop-color': msg.popColor }">{{ msg.text }}</div>
               </div>
             </template>
           </div>
         </div>
+        <!-- end -->
         <BottomMenus
           :height="'12%'"
-          :disabled="!buddy.username"
           @on-send-text="methods.onSendText"
           @on-text-changed="(e: any) => content = e" />
       </div>
@@ -125,8 +172,8 @@ function onReloadGroups(onSuccess: Function, onError: Function) {
         :groups="groups"
         @on-reload-friends="onReloadFriends"
         @on-reload-groups="onReloadGroups"
-        @on-select-group="onReloadGroups"
-        @on-select-friend="(e: any) => buddy = e" />
+        @on-select-group="onSelectedGroup"
+        @on-select-friend="onSelectFriend" />
     </div>
   </div>
 </template>

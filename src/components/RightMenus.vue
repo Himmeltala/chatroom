@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import UserModel from "@/models/userModel";
-import GroupModel from "@/models/groupModel";
 import { ElMessage } from "element-plus";
+import { UserModel, GroupModel } from "@/models";
 
 defineProps({
   friends: {
@@ -18,6 +17,7 @@ defineProps({
 
 const emits = defineEmits<{
   (event: "onSelectFriend", data: UserModel): void;
+  (event: "onSelectGroup", data: GroupModel): void;
   (event: "onReloadFriends", onSuccess: Function, onError: Function): void;
   (event: "onReloadGroups", onSuccess: Function, onError: Function): void;
 }>();
@@ -46,8 +46,8 @@ function reloadGroups() {
   );
 }
 
-function selectGroup(group: any) {
-  emits("onSelectFriend", group);
+function selectGroup(group: GroupModel) {
+  emits("onSelectGroup", group);
 }
 </script>
 
@@ -79,7 +79,7 @@ function selectGroup(group: any) {
         <el-button plain size="small" @click="reloadGroups">刷新群聊列表</el-button>
       </div>
       <template v-for="(group, index) in groups" :key="index">
-        <div class="item" @click="selectGroup">
+        <div class="item" @click="selectGroup(group)">
           <div class="left">
             <img class="avatar" :src="group.avatar" />
           </div>

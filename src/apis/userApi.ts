@@ -1,5 +1,5 @@
 import { normalizePost, NormalizeAxiosError, NormalizeAxiosSuccess } from "@/service/userService";
-import UserModel from "@/models/userModel";
+import { UserModel } from "@/models";
 
 export function checkUser(
   data: UserModel,
