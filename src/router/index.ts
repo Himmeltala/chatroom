@@ -32,9 +32,9 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   let cookie = checkCookie("USERINFO");
-  if (!cookie.isExsit && to.name !== "Login") {
+  if (!cookie.isDefined && to.name !== "Login") {
     next({ name: "Login" });
-  } else if (cookie.isExsit && to.name === "Login") {
+  } else if (cookie.isDefined && to.name === "Login") {
     next({ name: "Chat" });
   } else {
     next();

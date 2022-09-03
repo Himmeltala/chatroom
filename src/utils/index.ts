@@ -2,15 +2,15 @@ import { useCookies } from "@vueuse/integrations/useCookies";
 
 interface normalizeCheckedCookieReturn {
   cookie?: any;
-  isExsit: boolean;
+  isDefined: boolean;
 }
 
 export function checkCookie(name: string): normalizeCheckedCookieReturn {
-  let result = <normalizeCheckedCookieReturn>{};
-  let cookie = useCookies().get(name);
-  result.isExsit = cookie ? true : false;
-  if (result.isExsit) {
-    cookie.cookie = cookie;
+  let cookieData = <normalizeCheckedCookieReturn>{};
+  let localCookies = useCookies().get(name);
+  cookieData.isDefined = !!localCookies;
+  if (cookieData.isDefined) {
+    localCookies.cookie = localCookies;
   }
-  return result;
+  return cookieData;
 }
