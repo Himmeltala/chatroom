@@ -3,7 +3,7 @@ import { onMounted, ref } from "vue";
 import { io } from "socket.io-client";
 import { useCookies } from "@vueuse/integrations/useCookies";
 import { Message } from "@/typescript/standard";
-import { userApis, request } from "@/apis";
+import { updateUserService, queryGroupsService, queryFriendsService } from "@/service/userService";
 import { UserModel, GroupModel } from "@/models";
 
 let socket = io("http://localhost:3000");
@@ -15,17 +15,10 @@ let configs = ref();
 let friends = ref<Array<UserModel>>([]);
 let groups = ref<Array<GroupModel>>([]);
 
-socket.on("connect", () => {
-  userApis.updateUser({ socket_id: socket.id, id: cookie.id, is_online: 1 }, () => {
-    request
-      .all([userApis.queryFriends({ id: cookie.id }), userApis.queryGroups({ id: cookie.id })])
-      .then(
-        request.spread(({ data: res1 }, { data: res2 }) => {
-          friends.value = res1.data;
-          groups.value = res2.data;
-        })
-      );
-  });
+socket.on("connect", async () => {
+  let reqs = await updateUserService({ socket_id: socket.id, id: cookie.id, is_online: 1 });
+  friends.value = reqs[0].data.data;
+  groups.value = reqs[1].data.data;
 });
 
 onMounted(() => {
@@ -73,30 +66,16 @@ let content = ref<string>("");
 let selectFriend = ref<UserModel>({});
 let selectedGroup = ref<GroupModel>({});
 
-function onReloadFriends(onSuccess: Function, onError: Function) {
-  userApis.queryFriends(
-    { id: cookie.id },
-    ({ data }) => {
-      friends.value = data;
-      onSuccess();
-    },
-    () => {
-      onError();
-    }
-  );
+function onReloadFriends() {
+  queryFriendsService({ id: cookie.id }).then(res => {
+    friends.value = res.data.data;
+  });
 }
 
-function onReloadGroups(onSuccess: Function, onError: Function) {
-  userApis.queryGroups(
-    { id: cookie.id },
-    ({ data }) => {
-      groups.value = data;
-      onSuccess();
-    },
-    () => {
-      onError();
-    }
-  );
+function onReloadGroups() {
+  queryGroupsService({ id: cookie.id }).then(res => {
+    groups.value = res.data.data;
+  });
 }
 
 let nowType = ref<{

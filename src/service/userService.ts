@@ -1,28 +1,58 @@
-import { AxiosRequestConfig } from "axios";
-import { request } from "@/apis";
+import { request } from "@/utils/request";
+import { ElMessage } from "element-plus";
+import { useRouter } from "vue-router";
+import { UserModel } from "@/models";
 
-export interface NormalizeCallback {
-  (data: any, code?: number): void;
+function testUserPwdAndUname(data: any) {
+  let u = /^[a-zA-Z0-9]{2,14}$/;
+  let p = /^[a-zA-Z0-9]{6,16}$/;
+  return u.test(data.username) && p.test(data.password);
 }
 
-export function normalizePost(
-  ops: AxiosRequestConfig,
-  success?: NormalizeCallback,
-  error?: NormalizeCallback
-): any {
-  if (success || error) {
-    return request(ops)
-      .then(({ data: res }) => {
+export function checkUserService(data: UserModel) {
+  if (!testUserPwdAndUname(data)) {
+    ElMessage({ message: "密码或用户名不符合规范！", type: "error" });
+  } else {
+    request({ method: "post", url: "/login", data, withCredentials: true })
+      .then(res => {
         if (res.status == 200) {
-          success && success(res);
+          ElMessage({ message: "登陆成功！", type: "success" });
+          useRouter().push("/chat");
         } else {
-          error && error(res);
+          ElMessage({ message: "密码或用户名错误！", type: "error" });
         }
       })
       .catch(err => {
-        error && error(err);
+        ElMessage({ message: "密码或用户名错误！", type: "error" });
       });
-  } else {
-    return request(ops);
   }
+}
+
+export async function updateUserService(data: UserModel) {
+  await request({ method: "post", url: "/update/user", data });
+  let reqs = await request.all([
+    request({ method: "post", url: "/query/friends", data: { id: data.id } }),
+    request({ method: "post", url: "/query/groups", data: { id: data.id } })
+  ]);
+  return reqs;
+}
+
+export async function queryFriendsService(data: UserModel): Promise<any> {
+  let res = await request({ method: "post", url: "/query/friends", data });
+  if (res.data.status == 200) {
+    ElMessage({ message: "好友列表已更新", type: "success" });
+  } else {
+    ElMessage({ message: "好友列表更新失败", type: "warning" });
+  }
+  return res;
+}
+
+export async function queryGroupsService(data: UserModel): Promise<any> {
+  let res = await request({ method: "post", url: "/query/groups", data });
+  if (res.data.status == 200) {
+    ElMessage({ message: "群聊列表已更新", type: "success" });
+  } else {
+    ElMessage({ message: "群聊列表更新失败", type: "warning" });
+  }
+  return res;
 }

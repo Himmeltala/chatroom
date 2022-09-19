@@ -1,34 +1,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { useRouter } from "vue-router";
-import { checkUser } from "../apis/userApi";
-import { ElMessage } from "element-plus";
+import { checkUserService } from "../service/userService";
 
-const router = useRouter();
 let user = ref({ username: "", password: "" });
-
-function test(data: any) {
-  let u = /^[a-zA-Z0-9]{2,14}$/;
-  let p = /^[a-zA-Z0-9]{6,16}$/;
-  return u.test(data.username) && p.test(data.password);
-}
-
-function login() {
-  if (!test(user.value)) {
-    ElMessage({ message: "密码或用户名不符合规范！", type: "error" });
-  } else {
-    checkUser(
-      user.value,
-      () => {
-        ElMessage({ message: "登陆成功！", type: "success" });
-        router.push("/chat");
-      },
-      () => {
-        ElMessage({ message: "密码或用户名错误！", type: "error" });
-      }
-    );
-  }
-}
 
 function logon() {}
 </script>
@@ -46,7 +20,7 @@ function logon() {}
       </div>
       <div class="submit-btn">
         <el-button class="btn" @click="logon">注册</el-button>
-        <el-button class="btn" type="primary" @click="login">登陆</el-button>
+        <el-button class="btn" type="primary" @click="checkUserService(user)">登陆</el-button>
       </div>
       <div class="other-box"></div>
     </div>

@@ -18,32 +18,16 @@ defineProps({
 const emits = defineEmits<{
   (event: "onSelectFriend", data: UserModel): void;
   (event: "onSelectGroup", data: GroupModel): void;
-  (event: "onReloadFriends", onSuccess: Function, onError: Function): void;
-  (event: "onReloadGroups", onSuccess: Function, onError: Function): void;
+  (event: "onReloadFriends"): void;
+  (event: "onReloadGroups"): void;
 }>();
 
 function reloadFriends() {
-  emits(
-    "onReloadFriends",
-    () => {
-      ElMessage({ message: "好友列表已更新", type: "success" });
-    },
-    () => {
-      ElMessage({ message: "好友列表更新失败", type: "warning" });
-    }
-  );
+  emits("onReloadFriends");
 }
 
 function reloadGroups() {
-  emits(
-    "onReloadGroups",
-    () => {
-      ElMessage({ message: "群聊列表已更新", type: "success" });
-    },
-    () => {
-      ElMessage({ message: "群聊列表更新失败", type: "warning" });
-    }
-  );
+  emits("onReloadGroups");
 }
 
 function selectGroup(group: GroupModel) {
