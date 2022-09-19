@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { checkUserService } from "../service/userService";
+import { checkUserService } from "@/service/userService";
 
 let user = ref({ username: "", password: "" });
 

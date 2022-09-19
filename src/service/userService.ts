@@ -15,7 +15,7 @@ export function checkUserService(data: UserModel) {
   } else {
     request({ method: "post", url: "/login", data, withCredentials: true })
       .then(res => {
-        if (res.status == 200) {
+        if (res.data.status === 200) {
           ElMessage({ message: "登陆成功！", type: "success" });
           useRouter().push("/chat");
         } else {
