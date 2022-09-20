@@ -1,8 +1,15 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { checkUserService } from "@/service/userService";
+import { useRouter } from "vue-router";
 
 let user = ref({ username: "", password: "" });
+const router = useRouter();
+
+async function login() {
+  let passport = await checkUserService(user.value);
+  if (passport) router.push("/chat");
+}
 
 function logon() {}
 </script>
@@ -20,7 +27,7 @@ function logon() {}
       </div>
       <div class="submit-btn">
         <el-button class="btn" @click="logon">注册</el-button>
-        <el-button class="btn" type="primary" @click="checkUserService(user)">登陆</el-button>
+        <el-button class="btn" type="primary" @click="login">登陆</el-button>
       </div>
       <div class="other-box"></div>
     </div>

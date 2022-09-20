@@ -1,39 +1,32 @@
 import { request } from "@/utils/request";
 import { ElMessage } from "element-plus";
-import { useRouter } from "vue-router";
 import { UserModel } from "@/models";
 
-function testUserPwdAndUname(data: any) {
+function checkFormat(data: any) {
   let u = /^[a-zA-Z0-9]{2,14}$/;
   let p = /^[a-zA-Z0-9]{6,16}$/;
   return u.test(data.username) && p.test(data.password);
 }
 
-export function checkUserService(data: UserModel) {
-  if (!testUserPwdAndUname(data)) {
+export async function checkUserService(user: UserModel): Promise<boolean> {
+  let passport = false;
+  if (!checkFormat(user)) {
     ElMessage({ message: "密码或用户名不符合规范！", type: "error" });
   } else {
-    request({ method: "post", url: "/login", data, withCredentials: true })
-      .then(res => {
-        if (res.data.status === 200) {
-          ElMessage({ message: "登陆成功！", type: "success" });
-          useRouter().push("/chat");
-        } else {
-          ElMessage({ message: "密码或用户名错误！", type: "error" });
-        }
-      })
-      .catch(err => {
-        ElMessage({ message: "密码或用户名错误！", type: "error" });
-      });
+    let { data: res } = await request({ method: "post", url: "/login", data: user, withCredentials: true });
+    if (res.status == 200) {
+      ElMessage({ message: "登陆成功！", type: "success" });
+      passport = true;
+    } else {
+      ElMessage({ message: "密码或用户名错误！", type: "error" });
+    }
   }
+  return passport;
 }
 
 export async function updateUserService(data: UserModel) {
   await request({ method: "post", url: "/update/user", data });
-  let reqs = await request.all([
-    request({ method: "post", url: "/query/friends", data: { id: data.id } }),
-    request({ method: "post", url: "/query/groups", data: { id: data.id } })
-  ]);
+  let reqs = await request.all([request({ method: "post", url: "/query/friends", data: { id: data.id } }), request({ method: "post", url: "/query/groups", data: { id: data.id } })]);
   return reqs;
 }
 

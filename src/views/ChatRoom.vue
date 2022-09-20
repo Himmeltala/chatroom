@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { io } from "socket.io-client";
 import { useCookies } from "@vueuse/integrations/useCookies";
 import { Message } from "@/typescript/standard";
+import { storeToRefs } from "pinia";
+import { useBuddyMessagesStore } from "@/pinia/stores";
+import { io } from "socket.io-client";
 import { updateUserService, queryGroupsService, queryFriendsService } from "@/service/userService";
 import { UserModel, GroupModel } from "@/models";
 
@@ -21,6 +23,10 @@ socket.on("connect", async () => {
   groups.value = reqs[1].data.data;
 });
 
+let store = useBuddyMessagesStore();
+let { temporary } = storeToRefs(store);
+let { push } = store;
+
 onMounted(() => {
   socket.on("echo-private", message => {
     msgList.value.push(message);
@@ -32,24 +38,25 @@ onMounted(() => {
     msgListDom.value.scrollTop = msgListDom.value.scrollHeight;
   });
 
-  methods.onSendText = (text: string) => {
+  methods.sendText = (text: string) => {
     if (nowType.value.friend) {
       let message = new Message(
         cookie.username,
-        text,
         cookie.avatar,
+        text,
         configs.value.popColor,
         "others",
-        selectFriend.value.socket_id
+        selectedFriend.value.socket_id
       );
       socket.emit("emit-private", message);
       message.type = "self";
       msgList.value.push(message);
+      push(selectedFriend.value.id, message);
     } else {
       let message = new Message(
         cookie.username,
-        text,
         cookie.avatar,
+        text,
         configs.value.popColor,
         "others",
         selectedGroup.value.room_id
@@ -63,16 +70,16 @@ onMounted(() => {
 });
 
 let content = ref<string>("");
-let selectFriend = ref<UserModel>({});
+let selectedFriend = ref<UserModel>({});
 let selectedGroup = ref<GroupModel>({});
 
-function onReloadFriends() {
+function reloadFriends() {
   queryFriendsService({ id: cookie.id }).then(res => {
     friends.value = res.data.data;
   });
 }
 
-function onReloadGroups() {
+function reloadGroups() {
   queryGroupsService({ id: cookie.id }).then(res => {
     groups.value = res.data.data;
   });
@@ -83,14 +90,14 @@ let nowType = ref<{
   friend?: boolean;
 }>({ friend: true, group: false });
 
-function onSelectedGroup(e: GroupModel) {
+function selectGroup(e: GroupModel) {
   socket.emit("emit-join-public", { socket_id: socket.id, room_id: e.room_id });
   selectedGroup.value = e;
   nowType.value = { group: true, friend: false };
 }
 
-function onSelectFriend(e: UserModel) {
-  selectFriend.value = e;
+function selectFriend(e: UserModel) {
+  selectedFriend.value = e;
   nowType.value = { group: false, friend: true };
 }
 </script>
@@ -100,13 +107,13 @@ function onSelectFriend(e: UserModel) {
     <div class="wrapper">
       <ConfigMenus @on-change="(e: any) => (configs = e)" @on-init="(e: any) => (configs = e)" />
       <div class="content">
-        <!-- start -->
+        <!-- chat panel start -->
         <template v-if="nowType.friend === true">
           <div class="friends">
-            <div class="username">{{ selectFriend.username }}</div>
+            <div class="username">{{ selectedFriend.username }}</div>
             <div class="is-online">
-              <template v-if="selectFriend.username">
-                <template v-if="selectFriend.is_online === 1">在线</template>
+              <template v-if="selectedFriend.username">
+                <template v-if="selectedFriend.is_online === 1">在线</template>
                 <template v-else>离线</template>
               </template>
               <template v-else>未选择好友</template>
@@ -140,19 +147,19 @@ function onSelectFriend(e: UserModel) {
             </template>
           </div>
         </div>
-        <!-- end -->
+        <!-- chat panel end -->
         <BottomMenus
           :height="'12%'"
-          @on-send-text="methods.onSendText"
+          @on-send-text="methods.sendText"
           @on-text-changed="(e: any) => content = e" />
       </div>
       <RightMenus
         :friends="friends"
         :groups="groups"
-        @on-reload-friends="onReloadFriends"
-        @on-reload-groups="onReloadGroups"
-        @on-select-group="onSelectedGroup"
-        @on-select-friend="onSelectFriend" />
+        @on-reload-friends="reloadFriends"
+        @on-reload-groups="reloadGroups"
+        @on-select-group="selectGroup"
+        @on-select-friend="selectFriend" />
     </div>
   </div>
 </template>

@@ -24,3 +24,17 @@ export interface UserModel {
   constellation?: string;
   sex?: string;
 }
+
+export interface TemporaryMessages {
+  id: number;
+  messages: Message[];
+}
+
+export interface Message {
+  username: string;
+  avatar: string;
+  text: string;
+  popColor: string;
+  type?: string;
+  socket_id?: string;
+}
