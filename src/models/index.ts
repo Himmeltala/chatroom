@@ -33,6 +33,7 @@ export interface TemporaryMessages {
 export interface Message {
   username: string;
   avatar: string;
+  id: string;
   text: string;
   popColor: string;
   type?: string;

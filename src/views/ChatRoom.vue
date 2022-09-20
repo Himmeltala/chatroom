@@ -13,7 +13,7 @@ let socket = io("http://localhost:3000");
 let cookie = useCookies().get("USERINFO");
 let methods: any = {};
 let msgList = ref<Message[]>([]);
-let msgListDom = ref<any>(null);
+let chatPanel = ref<any>(null);
 let configs = ref();
 let friends = ref<UserModel[]>([]);
 let groups = ref<GroupModel[]>([]);
@@ -35,30 +35,32 @@ socket.on("connect", async () => {
 
 onMounted(() => {
   socket.on("echo-private", message => {
-    msgList.value.push(message);
-    msgListDom.value.scrollTop = msgListDom.value.scrollHeight;
+    push(message.id, message);
+    let index = getElInArrayIndex<TemporaryMessages>(temporary.value, arr => arr.id === message.id);
+    buddyMessages.value = temporary.value[index].messages;
+    chatPanel.value.scrollTop = chatPanel.value.scrollHeight;
   });
 
   socket.on("echo-public", message => {
     msgList.value.push(message);
-    msgListDom.value.scrollTop = msgListDom.value.scrollHeight;
+    chatPanel.value.scrollTop = chatPanel.value.scrollHeight;
   });
 
   methods.sendText = (text: string) => {
     if (nowType.value.friend) {
-      let message = new Message(cookie.username, cookie.avatar, text, configs.value.popColor, "others", pitchBuddy.value.socket_id);
+      let message = new Message(cookie.username, cookie.avatar, cookie.id, text, configs.value.popColor, "others", pitchBuddy.value.socket_id);
       socket.emit("emit-private", message);
       message.type = "self";
       push(pitchBuddy.value.id, message);
       let index = getElInArrayIndex<TemporaryMessages>(temporary.value, arr => arr.id === pitchBuddy.value.id);
       buddyMessages.value = temporary.value[index].messages;
     } else {
-      let message = new Message(cookie.username, cookie.avatar, text, configs.value.popColor, "others", pitchGroup.value.room_id);
+      let message = new Message(cookie.username, cookie.avatar, cookie.id, text, configs.value.popColor, "others", pitchGroup.value.room_id);
       socket.emit("emit-public", message);
       message.type = "self";
       msgList.value.push(message);
     }
-    msgListDom.value.scrollTop = msgListDom.value.scrollHeight;
+    chatPanel.value.scrollTop = chatPanel.value.scrollHeight;
   };
 });
 
@@ -74,16 +76,17 @@ function reloadGroups() {
   });
 }
 
-function selectGroup(e: GroupModel) {
-  socket.emit("emit-join-public", { socket_id: socket.id, room_id: e.room_id });
-  pitchGroup.value = e;
+function selectGroup(group: GroupModel) {
+  socket.emit("emit-join-public", { socket_id: socket.id, room_id: group.room_id });
+  pitchGroup.value = group;
   nowType.value = { group: true, friend: false };
 }
 
-function selectFriend(e: UserModel) {
-  pitchBuddy.value = e;
-  let index = getElInArrayIndex<TemporaryMessages>(temporary.value, arr => arr.id === e.id);
+function selectFriend(user: UserModel) {
+  pitchBuddy.value = user;
+  let index = getElInArrayIndex<TemporaryMessages>(temporary.value, arr => arr.id === user.id);
   if (index === -1) {
+    buddyMessages.value = undefined;
     // 从数据库中查询，并复制给 buddy
   } else buddyMessages.value = temporary.value[index].messages;
   nowType.value = { group: false, friend: true };
@@ -113,27 +116,29 @@ function selectFriend(e: UserModel) {
             <div class="username">{{ pitchGroup.name }}</div>
           </div>
         </template>
-        <div class="msg-list" ref="msgListDom">
-          <div class="msg-item" :class="message.type" v-for="(message, key) in buddyMessages" :key="key">
-            <template v-if="message.type === 'self'">
-              <div class="left">
-                <template v-if="nowType.group">
-                  <div class="msg-holder">{{ message.username }}</div>
-                </template>
-                <div class="msg-pop" :style="{ '--pop-color': message.popColor }">{{ message.text }}</div>
-              </div>
-              <div class="right"><img class="avatar" :src="message.avatar" alt="oops!" /></div>
-            </template>
-            <template v-else>
-              <div class="left"><img class="avatar" :src="message.avatar" alt="oops!" /></div>
-              <div class="right">
-                <template v-if="nowType.group">
-                  <div class="msg-holder">{{ message.username }}</div>
-                </template>
-                <div class="msg-pop" :style="{ '--pop-color': message.popColor }">{{ message.text }}</div>
-              </div>
-            </template>
-          </div>
+        <div class="msg-list" ref="chatPanel">
+          <template v-if="buddyMessages">
+            <div class="msg-item" :class="message.type" v-for="(message, key) in buddyMessages" :key="key">
+              <template v-if="message.type === 'self'">
+                <div class="left">
+                  <template v-if="nowType.group">
+                    <div class="msg-holder">{{ message.username }}</div>
+                  </template>
+                  <div class="msg-pop" :style="{ '--pop-color': message.popColor }">{{ message.text }}</div>
+                </div>
+                <div class="right"><img class="avatar" :src="message.avatar" alt="oops!" /></div>
+              </template>
+              <template v-else>
+                <div class="left"><img class="avatar" :src="message.avatar" alt="oops!" /></div>
+                <div class="right">
+                  <template v-if="nowType.group">
+                    <div class="msg-holder">{{ message.username }}</div>
+                  </template>
+                  <div class="msg-pop" :style="{ '--pop-color': message.popColor }">{{ message.text }}</div>
+                </div>
+              </template>
+            </div>
+          </template>
         </div>
         <!-- chat panel end -->
         <BottomMenus :height="'12%'" @on-send-text="methods.sendText" @on-text-changed="(e: any) => content = e" />
