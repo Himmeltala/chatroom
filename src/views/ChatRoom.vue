@@ -1,31 +1,37 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useCookies } from "@vueuse/integrations/useCookies";
-import { Message } from "@/typescript/standard";
-import { storeToRefs } from "pinia";
 import { useBuddyMessagesStore } from "@/pinia/stores";
+import { storeToRefs } from "pinia";
 import { io } from "socket.io-client";
+import { UserModel, GroupModel, Message as Messages, TemporaryMessages } from "@/models";
 import { updateUserService, queryGroupsService, queryFriendsService } from "@/service/userService";
-import { UserModel, GroupModel } from "@/models";
+import { getElInArrayIndex } from "@/utils";
+import { Message } from "@/typescript/standard";
 
 let socket = io("http://localhost:3000");
 let cookie = useCookies().get("USERINFO");
 let methods: any = {};
-let msgList = ref<Array<Message>>([]);
+let msgList = ref<Message[]>([]);
 let msgListDom = ref<any>(null);
 let configs = ref();
-let friends = ref<Array<UserModel>>([]);
-let groups = ref<Array<GroupModel>>([]);
+let friends = ref<UserModel[]>([]);
+let groups = ref<GroupModel[]>([]);
+let buddyMessages = ref<Messages[]>();
+let content = ref<string>("");
+let pitchBuddy = ref<UserModel>({});
+let pitchGroup = ref<GroupModel>({});
+let nowType = ref<{ group?: boolean; friend?: boolean }>({ friend: true, group: false });
+
+const store = useBuddyMessagesStore();
+let { temporary } = storeToRefs(store);
+const { push } = store;
 
 socket.on("connect", async () => {
   let reqs = await updateUserService({ socket_id: socket.id, id: cookie.id, is_online: 1 });
   friends.value = reqs[0].data.data;
   groups.value = reqs[1].data.data;
 });
-
-let store = useBuddyMessagesStore();
-let { temporary } = storeToRefs(store);
-let { push } = store;
 
 onMounted(() => {
   socket.on("echo-private", message => {
@@ -40,27 +46,14 @@ onMounted(() => {
 
   methods.sendText = (text: string) => {
     if (nowType.value.friend) {
-      let message = new Message(
-        cookie.username,
-        cookie.avatar,
-        text,
-        configs.value.popColor,
-        "others",
-        selectedFriend.value.socket_id
-      );
+      let message = new Message(cookie.username, cookie.avatar, text, configs.value.popColor, "others", pitchBuddy.value.socket_id);
       socket.emit("emit-private", message);
       message.type = "self";
-      msgList.value.push(message);
-      push(selectedFriend.value.id, message);
+      push(pitchBuddy.value.id, message);
+      let index = getElInArrayIndex<TemporaryMessages>(temporary.value, arr => arr.id === pitchBuddy.value.id);
+      buddyMessages.value = temporary.value[index].messages;
     } else {
-      let message = new Message(
-        cookie.username,
-        cookie.avatar,
-        text,
-        configs.value.popColor,
-        "others",
-        selectedGroup.value.room_id
-      );
+      let message = new Message(cookie.username, cookie.avatar, text, configs.value.popColor, "others", pitchGroup.value.room_id);
       socket.emit("emit-public", message);
       message.type = "self";
       msgList.value.push(message);
@@ -68,10 +61,6 @@ onMounted(() => {
     msgListDom.value.scrollTop = msgListDom.value.scrollHeight;
   };
 });
-
-let content = ref<string>("");
-let selectedFriend = ref<UserModel>({});
-let selectedGroup = ref<GroupModel>({});
 
 function reloadFriends() {
   queryFriendsService({ id: cookie.id }).then(res => {
@@ -85,19 +74,18 @@ function reloadGroups() {
   });
 }
 
-let nowType = ref<{
-  group?: boolean;
-  friend?: boolean;
-}>({ friend: true, group: false });
-
 function selectGroup(e: GroupModel) {
   socket.emit("emit-join-public", { socket_id: socket.id, room_id: e.room_id });
-  selectedGroup.value = e;
+  pitchGroup.value = e;
   nowType.value = { group: true, friend: false };
 }
 
 function selectFriend(e: UserModel) {
-  selectedFriend.value = e;
+  pitchBuddy.value = e;
+  let index = getElInArrayIndex<TemporaryMessages>(temporary.value, arr => arr.id === e.id);
+  if (index === -1) {
+    // 从数据库中查询，并复制给 buddy
+  } else buddyMessages.value = temporary.value[index].messages;
   nowType.value = { group: false, friend: true };
 }
 </script>
@@ -110,10 +98,10 @@ function selectFriend(e: UserModel) {
         <!-- chat panel start -->
         <template v-if="nowType.friend === true">
           <div class="friends">
-            <div class="username">{{ selectedFriend.username }}</div>
+            <div class="username">{{ pitchBuddy.username }}</div>
             <div class="is-online">
-              <template v-if="selectedFriend.username">
-                <template v-if="selectedFriend.is_online === 1">在线</template>
+              <template v-if="pitchBuddy.username">
+                <template v-if="pitchBuddy.is_online === 1">在线</template>
                 <template v-else>离线</template>
               </template>
               <template v-else>未选择好友</template>
@@ -122,44 +110,35 @@ function selectFriend(e: UserModel) {
         </template>
         <template v-else>
           <div class="friends">
-            <div class="username">{{ selectedGroup.name }}</div>
+            <div class="username">{{ pitchGroup.name }}</div>
           </div>
         </template>
         <div class="msg-list" ref="msgListDom">
-          <div class="msg-item" :class="msg.type" v-for="(msg, key) in msgList" :key="key">
-            <template v-if="msg.type === 'self'">
+          <div class="msg-item" :class="message.type" v-for="(message, key) in buddyMessages" :key="key">
+            <template v-if="message.type === 'self'">
               <div class="left">
                 <template v-if="nowType.group">
-                  <div class="msg-holder">{{ msg.username }}</div>
+                  <div class="msg-holder">{{ message.username }}</div>
                 </template>
-                <div class="msg-pop" :style="{ '--pop-color': msg.popColor }">{{ msg.text }}</div>
+                <div class="msg-pop" :style="{ '--pop-color': message.popColor }">{{ message.text }}</div>
               </div>
-              <div class="right"><img class="avatar" :src="msg.avatar" alt="oops!" /></div>
+              <div class="right"><img class="avatar" :src="message.avatar" alt="oops!" /></div>
             </template>
             <template v-else>
-              <div class="left"><img class="avatar" :src="msg.avatar" alt="oops!" /></div>
+              <div class="left"><img class="avatar" :src="message.avatar" alt="oops!" /></div>
               <div class="right">
                 <template v-if="nowType.group">
-                  <div class="msg-holder">{{ msg.username }}</div>
+                  <div class="msg-holder">{{ message.username }}</div>
                 </template>
-                <div class="msg-pop" :style="{ '--pop-color': msg.popColor }">{{ msg.text }}</div>
+                <div class="msg-pop" :style="{ '--pop-color': message.popColor }">{{ message.text }}</div>
               </div>
             </template>
           </div>
         </div>
         <!-- chat panel end -->
-        <BottomMenus
-          :height="'12%'"
-          @on-send-text="methods.sendText"
-          @on-text-changed="(e: any) => content = e" />
+        <BottomMenus :height="'12%'" @on-send-text="methods.sendText" @on-text-changed="(e: any) => content = e" />
       </div>
-      <RightMenus
-        :friends="friends"
-        :groups="groups"
-        @on-reload-friends="reloadFriends"
-        @on-reload-groups="reloadGroups"
-        @on-select-group="selectGroup"
-        @on-select-friend="selectFriend" />
+      <RightMenus :friends="friends" :groups="groups" @on-reload-friends="reloadFriends" @on-reload-groups="reloadGroups" @on-select-group="selectGroup" @on-select-friend="selectFriend" />
     </div>
   </div>
 </template>

@@ -14,7 +14,7 @@ export async function checkUserService(user: UserModel): Promise<boolean> {
     ElMessage({ message: "密码或用户名不符合规范！", type: "error" });
   } else {
     let { data: res } = await request({ method: "post", url: "/login", data: user, withCredentials: true });
-    if (res.status == 200) {
+    if (res.status === 200) {
       ElMessage({ message: "登陆成功！", type: "success" });
       passport = true;
     } else {
