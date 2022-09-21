@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { ElMessage } from "element-plus";
-import { UserModel, GroupModel } from "@/models";
+import { IUser, IGroup } from "@/types";
 
 defineProps({
   friends: {
-    type: Array<UserModel>
+    type: Array<IUser>
   },
   groups: {
-    type: Array<GroupModel>
+    type: Array<IGroup>
   },
   width: {
     type: String,
@@ -16,8 +15,8 @@ defineProps({
 });
 
 const emits = defineEmits<{
-  (event: "onSelectFriend", data: UserModel): void;
-  (event: "onSelectGroup", data: GroupModel): void;
+  (event: "onSelectFriend", data: IUser): void;
+  (event: "onSelectGroup", data: IGroup): void;
   (event: "onReloadFriends"): void;
   (event: "onReloadGroups"): void;
 }>();
@@ -30,7 +29,7 @@ function reloadGroups() {
   emits("onReloadGroups");
 }
 
-function selectGroup(group: GroupModel) {
+function selectGroup(group: IGroup) {
   emits("onSelectGroup", group);
 }
 </script>
@@ -45,11 +44,7 @@ function selectGroup(group: GroupModel) {
         <div class="item" @click="emits('onSelectFriend', friend)">
           <div class="left">
             <div class="status" v-if="friend.is_online !== 0"></div>
-            <img
-              class="avatar"
-              :src="friend.avatar"
-              :class="friend.is_online === 0 ? 'outline' : ''"
-              alt="avatar" />
+            <img class="avatar" :src="friend.avatar" :class="friend.is_online === 0 ? 'outline' : ''" alt="avatar" />
           </div>
           <div class="right">
             <div class="username">{{ friend.username }}</div>

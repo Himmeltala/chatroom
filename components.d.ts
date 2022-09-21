@@ -14,6 +14,7 @@ declare module '@vue/runtime-core' {
     ElIcon: typeof import("element-plus/es")["ElIcon"]
     ElInput: typeof import("element-plus/es")["ElInput"]
     LayColorPicker: typeof import('@layui/layui-vue')['LayColorPicker']
+    Messages: typeof import('./src/components/Messages.vue')['default']
     RightMenus: typeof import('./src/components/RightMenus.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

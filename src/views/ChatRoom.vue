@@ -21,7 +21,7 @@ let publicMessages = ref<IMessage[]>();
 let content = ref<string>("");
 let clickUser = ref<IUser>({});
 let clickGroup = ref<IGroup>({});
-let nowType = ref<{ group?: boolean; friend?: boolean }>({ friend: true, group: false });
+let chatType = ref<string>("private");
 
 const privateStore = usePrivateMessagesStore();
 let { privateTempMessages } = storeToRefs(privateStore);
@@ -32,8 +32,7 @@ let { publicTempMessages } = storeToRefs(publicStore);
 const { pushPublicMessageToStore } = publicStore;
 
 /**
- * 打开聊天室界面时连接 socket
- * 查询好友列表以及群聊列表
+ * 打开聊天室界面时连接 socket，并查询好友列表以及群聊列表
  */
 socket.on("connect", async () => {
   let response = await queryFriendAndGroupService({ socket_id: socket.id, id: cookie.id, is_online: 1 });
@@ -92,7 +91,7 @@ onMounted(() => {
   });
 
   methods.sendText = (text: string) => {
-    if (nowType.value.friend) {
+    if (chatType.value === "private") {
       sendMessage("emit-private", text, clickUser.value.socket_id!, message => {
         updatePrivateMessages(message, clickUser.value.id!);
       });
@@ -122,7 +121,7 @@ function selectGroup(group: IGroup) {
   if (index === -1) {
     publicMessages.value = undefined;
   } else publicMessages.value = publicTempMessages.value[index].messages;
-  nowType.value = { group: true, friend: false };
+  chatType.value = "public";
 }
 
 function selectUser(user: IUser) {
@@ -130,8 +129,9 @@ function selectUser(user: IUser) {
   let index = getIndexOfElInArr<ITemporaryMessage>(privateTempMessages.value, arr => arr.id === user.id);
   if (index === -1) {
     privateMessages.value = undefined;
+    // 1. 查询数据
   } else privateMessages.value = privateTempMessages.value[index].messages;
-  nowType.value = { group: false, friend: true };
+  chatType.value = "private";
 }
 </script>
 
@@ -141,7 +141,7 @@ function selectUser(user: IUser) {
       <ConfigMenus @on-change="(e: any) => (configs = e)" @on-init="(e: any) => (configs = e)" />
       <div class="content">
         <!-- chat panel start -->
-        <template v-if="nowType.friend === true">
+        <template v-if="chatType === 'private'">
           <div class="friends">
             <div class="username">{{ clickUser.username }}</div>
             <div class="is-online">
@@ -158,49 +158,9 @@ function selectUser(user: IUser) {
             <div class="username">{{ clickGroup.name }}</div>
           </div>
         </template>
-        <div class="msg-list" ref="chatPanel">
-          <!-- 私聊 -->
-          <template v-if="nowType.friend">
-            <template v-if="privateMessages">
-              <div class="msg-item" :class="message.type" v-for="(message, key) in privateMessages" :key="key">
-                <template v-if="message.type === 'self'">
-                  <div class="left">
-                    <div class="msg-holder">{{ message.username }}</div>
-                    <div class="msg-pop" :style="{ '--pop-color': message.pop_color }">{{ message.text }}</div>
-                  </div>
-                  <div class="right"><img class="avatar" :src="message.avatar" alt="oops!" /></div>
-                </template>
-                <template v-else>
-                  <div class="left"><img class="avatar" :src="message.avatar" alt="oops!" /></div>
-                  <div class="right">
-                    <div class="msg-holder">{{ message.username }}</div>
-                    <div class="msg-pop" :style="{ '--pop-color': message.pop_color }">{{ message.text }}</div>
-                  </div>
-                </template>
-              </div>
-            </template>
-          </template>
-          <!-- 群聊 -->
-          <template v-if="nowType.group">
-            <template v-if="publicMessages">
-              <div class="msg-item" :class="message.type" v-for="(message, key) in publicMessages" :key="key">
-                <template v-if="message.type === 'self'">
-                  <div class="left">
-                    <div class="msg-holder">{{ message.username }}</div>
-                    <div class="msg-pop" :style="{ '--pop-color': message.pop_color }">{{ message.text }}</div>
-                  </div>
-                  <div class="right"><img class="avatar" :src="message.avatar" alt="oops!" /></div>
-                </template>
-                <template v-else>
-                  <div class="left"><img class="avatar" :src="message.avatar" alt="oops!" /></div>
-                  <div class="right">
-                    <div class="msg-holder">{{ message.username }}</div>
-                    <div class="msg-pop" :style="{ '--pop-color': message.pop_color }">{{ message.text }}</div>
-                  </div>
-                </template>
-              </div>
-            </template>
-          </template>
+        <div class="chat-panel" ref="chatPanel">
+          <Messages :data="privateMessages" defineType="private" :type="chatType" />
+          <Messages :data="publicMessages" defineType="public" :type="chatType" />
         </div>
         <!-- chat panel end -->
         <BottomMenus :height="'12%'" @on-send-text="methods.sendText" @on-text-changed="(e: any) => content = e" />
@@ -249,116 +209,9 @@ function selectUser(user: IUser) {
   }
 }
 
-.msg-list {
+.chat-panel {
   width: 100%;
   height: 80%;
   overflow-x: auto;
-
-  .msg-item {
-    display: flex;
-    margin-top: 20px;
-
-    &:last-child {
-      margin-bottom: 20px;
-    }
-
-    .msg-pop {
-      position: relative;
-      width: auto;
-      margin-top: 5px;
-      padding: 10px 10px;
-      box-sizing: border-box;
-      background-color: var(--pop-color);
-      border-radius: $border-radius-large;
-
-      word: {
-        break: break-word;
-        wrap: break-word;
-      }
-    }
-
-    .avatar {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-    }
-
-    .msg-holder {
-      text-align: right;
-    }
-  }
-
-  .self {
-    justify-content: flex-end;
-
-    &.msg-item {
-      padding: {
-        right: 20px;
-        left: 50px;
-      }
-    }
-
-    .right {
-      text-align: right;
-      width: 12%;
-    }
-
-    .left {
-      width: 88%;
-
-      @include flex($align-items: flex-end) {
-        flex-direction: column;
-      }
-    }
-
-    .msg-pop::after {
-      position: absolute;
-      content: "";
-      top: 10px;
-      right: -10px;
-
-      border: {
-        top: 2px solid transparent;
-        left: 12px solid var(--pop-color);
-        bottom: 10px solid transparent;
-      }
-    }
-  }
-
-  .others {
-    justify-content: flex-start;
-
-    &.msg-item {
-      padding: {
-        right: 50px;
-        left: 20px;
-      }
-    }
-
-    .left {
-      width: 12%;
-    }
-
-    .right {
-      width: 88%;
-
-      @include flex($align-items: flex-start) {
-        flex-direction: column;
-      }
-    }
-
-    .msg-pop::before {
-      position: absolute;
-      content: "";
-      top: 10px;
-      left: -10px;
-
-      border: {
-        top: 2px solid transparent;
-        right: 12px solid var(--pop-color);
-        bottom: 10px solid transparent;
-      }
-    }
-  }
 }
 </style>
