@@ -25,17 +25,16 @@ export interface IUser {
   sex?: string;
 }
 
-export interface ITemporaryMessage {
-  id: number;
-  messages: IMessage[];
-}
-
 export interface IMessage {
   username: string;
   avatar: string;
   id: number;
   text: string;
-  popColor: string;
+  pop_color: string;
   type?: string;
   socket_id?: string;
+}
+export interface ITemporaryMessage {
+  id: number;
+  messages: IMessage[];
 }
