@@ -26,7 +26,7 @@ export function findElInArray<T>(array: T[], reg: (v: T, i: number, o: T[]) => b
  */
 export function getIndexOfElInArr<T>(arr: T[], match: (arr: T) => boolean): number {
   let index = -1;
-  if (arr.length == 0) index = -1;
+  if (arr.length === 0) index = -1;
   else for (let i = 0; i < arr.length; i++) if (match(arr[i])) index = i;
   return index;
 }

@@ -3,11 +3,12 @@ import { onMounted, ref } from "vue";
 import { useCookies } from "@vueuse/integrations/useCookies";
 import { storeToRefs } from "pinia";
 import { io } from "socket.io-client";
-import { usePrivateMessagesStore } from "@/pinia/stores";
+import { usePrivateMessagesStore, usePublicMessagesStore } from "@/pinia/stores";
 import { IUser, IGroup, IMessage, ITemporaryMessage } from "@/types";
 import { Message } from "@/models";
 import { getIndexOfElInArr } from "@/utils";
 import { queryListPanelService, queryGroupsService, queryFriendsService } from "@/service/userService";
+import { groupBy } from "lodash";
 
 let socket = io("http://localhost:3000");
 let cookie = useCookies().get("USERINFO");
@@ -27,6 +28,10 @@ let nowType = ref<{ group?: boolean; friend?: boolean }>({ friend: true, group: 
 const privateStore = usePrivateMessagesStore();
 let { privateTempMessages } = storeToRefs(privateStore);
 const { pushPrivateMessageToStore } = privateStore;
+
+const publicStore = usePublicMessagesStore();
+let { publicTempMessages } = storeToRefs(publicStore);
+const { pushPublicMessageToStore } = publicStore;
 
 socket.on("connect", async () => {
   let reqs = await queryListPanelService({ socket_id: socket.id, id: cookie.id, is_online: 1 });
@@ -50,33 +55,37 @@ function updatePrivateMessages(message: IMessage, id: number) {
  * @param message 消息类实体
  * @param id 群 ID
  */
-function updatePublicMessages(message: IMessage, id: number) {}
+function updatePublicMessages(message: IMessage, id: number) {
+  pushPublicMessageToStore(id, message);
+  let index = getIndexOfElInArr<ITemporaryMessage>(publicTempMessages.value, arr => arr.id === id);
+  publicMessages.value = publicTempMessages.value[index].messages;
+}
 
-function sendMessage(label: string, text: string, sid: string, type: string, clb?: (res: IMessage) => void) {
+function sendMessage(label: string, text: string, sid: string, clb?: (res: IMessage) => void) {
   let message = new Message(cookie.username, cookie.avatar, cookie.id, text, configs.value.popColor, "others", sid);
   socket.emit(label, message);
-  message.type = type;
+  message.type = "self";
   clb && clb(message);
 }
 
 onMounted(() => {
   socket.on("echo-private", message => {
-    updatePrivateMessages(message, message.id);
+    updatePrivateMessages(message, pitchBuddy.value.id!);
     chatPanel.value.scrollTop = chatPanel.value.scrollHeight;
   });
 
   socket.on("echo-public", message => {
-    msgList.value.push(message);
+    updatePublicMessages(message, pitchGroup.value.id!);
     chatPanel.value.scrollTop = chatPanel.value.scrollHeight;
   });
 
   methods.sendText = (text: string) => {
     if (nowType.value.friend) {
-      sendMessage("emit-private", text, pitchBuddy.value.socket_id!, "self", message => {
+      sendMessage("emit-private", text, pitchBuddy.value.socket_id!, message => {
         updatePrivateMessages(message, pitchBuddy.value.id!);
       });
     } else {
-      sendMessage("emit-public", text, pitchGroup.value.room_id!, "self", message => {
+      sendMessage("emit-public", text, pitchGroup.value.room_id!, message => {
         updatePublicMessages(message, pitchGroup.value.id!);
       });
     }
@@ -99,6 +108,12 @@ function reloadGroups() {
 function selectGroup(group: IGroup) {
   socket.emit("emit-join-public", { socket_id: socket.id, room_id: group.room_id });
   pitchGroup.value = group;
+  console.log(group);
+  let index = getIndexOfElInArr<ITemporaryMessage>(publicTempMessages.value, arr => arr.id === group.id);
+  console.log(index);
+  if (index === -1) {
+    publicMessages.value = undefined;
+  } else publicMessages.value = publicTempMessages.value[index].messages;
   nowType.value = { group: true, friend: false };
 }
 
@@ -107,7 +122,7 @@ function selectFriend(user: IUser) {
   let index = getIndexOfElInArr<ITemporaryMessage>(privateTempMessages.value, arr => arr.id === user.id);
   if (index === -1) {
     privateMessages.value = undefined;
-    // 从数据库中查询，并复制给 buddy
+    // 从数据库中查询，赋值给 private
   } else privateMessages.value = privateTempMessages.value[index].messages;
   nowType.value = { group: false, friend: true };
 }
@@ -137,27 +152,47 @@ function selectFriend(user: IUser) {
           </div>
         </template>
         <div class="msg-list" ref="chatPanel">
-          <template v-if="privateMessages">
-            <div class="msg-item" :class="message.type" v-for="(message, key) in privateMessages" :key="key">
-              <template v-if="message.type === 'self'">
-                <div class="left">
-                  <template v-if="nowType.group">
+          <!-- 私聊 -->
+          <template v-if="nowType.friend">
+            <template v-if="privateMessages">
+              <div class="msg-item" :class="message.type" v-for="(message, key) in privateMessages" :key="key">
+                <template v-if="message.type === 'self'">
+                  <div class="left">
                     <div class="msg-holder">{{ message.username }}</div>
-                  </template>
-                  <div class="msg-pop" :style="{ '--pop-color': message.popColor }">{{ message.text }}</div>
-                </div>
-                <div class="right"><img class="avatar" :src="message.avatar" alt="oops!" /></div>
-              </template>
-              <template v-else>
-                <div class="left"><img class="avatar" :src="message.avatar" alt="oops!" /></div>
-                <div class="right">
-                  <template v-if="nowType.group">
+                    <div class="msg-pop" :style="{ '--pop-color': message.popColor }">{{ message.text }}</div>
+                  </div>
+                  <div class="right"><img class="avatar" :src="message.avatar" alt="oops!" /></div>
+                </template>
+                <template v-else>
+                  <div class="left"><img class="avatar" :src="message.avatar" alt="oops!" /></div>
+                  <div class="right">
                     <div class="msg-holder">{{ message.username }}</div>
-                  </template>
-                  <div class="msg-pop" :style="{ '--pop-color': message.popColor }">{{ message.text }}</div>
-                </div>
-              </template>
-            </div>
+                    <div class="msg-pop" :style="{ '--pop-color': message.popColor }">{{ message.text }}</div>
+                  </div>
+                </template>
+              </div>
+            </template>
+          </template>
+          <!-- 群聊 -->
+          <template v-if="nowType.group">
+            <template v-if="publicMessages">
+              <div class="msg-item" :class="message.type" v-for="(message, key) in publicMessages" :key="key">
+                <template v-if="message.type === 'self'">
+                  <div class="left">
+                    <div class="msg-holder">{{ message.username }}</div>
+                    <div class="msg-pop" :style="{ '--pop-color': message.popColor }">{{ message.text }}</div>
+                  </div>
+                  <div class="right"><img class="avatar" :src="message.avatar" alt="oops!" /></div>
+                </template>
+                <template v-else>
+                  <div class="left"><img class="avatar" :src="message.avatar" alt="oops!" /></div>
+                  <div class="right">
+                    <div class="msg-holder">{{ message.username }}</div>
+                    <div class="msg-pop" :style="{ '--pop-color': message.popColor }">{{ message.text }}</div>
+                  </div>
+                </template>
+              </div>
+            </template>
           </template>
         </div>
         <!-- chat panel end -->
