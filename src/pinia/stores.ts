@@ -1,20 +1,23 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { TemporaryMessages } from "@/models";
-import { getElInArrayIndex } from "@/utils";
+import { ITemporaryMessage, IMessage } from "@/types";
+import { getIndexOfElInArr } from "@/utils";
 
 export const useBuddyMessagesStore = defineStore("buddyMessagesStore", () => {
-  let temporary = ref<TemporaryMessages[]>([]);
+  let temporary = ref<ITemporaryMessage[]>([]);
 
-  function push(id: any, message: any): void {
-    let index = getElInArrayIndex<TemporaryMessages>(temporary.value, arr => arr.id === id);
-    if (index === -1) {
-      let _data = <TemporaryMessages>{ id: id, messages: [] };
+  /**
+   * 给 state 插入一条临时消息
+   * @param id 好友 ID
+   * @param message 消息实体类接口
+   */
+  function push(id: any, message: IMessage): void {
+    let index = getIndexOfElInArr<ITemporaryMessage>(temporary.value, arr => arr.id == parseInt(id));
+    if (index == -1) {
+      let _data = <ITemporaryMessage>{ id: id, messages: [] };
       _data.messages.push(message);
       temporary.value.push(_data);
-    } else {
-      temporary.value[index].messages.push(message);
-    }
+    } else temporary.value[index].messages.push(message);
   }
 
   return { temporary, push };

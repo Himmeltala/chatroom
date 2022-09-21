@@ -4,28 +4,28 @@ import { useCookies } from "@vueuse/integrations/useCookies";
 import { useBuddyMessagesStore } from "@/pinia/stores";
 import { storeToRefs } from "pinia";
 import { io } from "socket.io-client";
-import { UserModel, GroupModel, Message as Messages, TemporaryMessages } from "@/models";
+import { IUser, IGroup, IMessage, ITemporaryMessage } from "@/types";
+import { Message } from "@/models";
+import { getIndexOfElInArr } from "@/utils";
 import { updateUserService, queryGroupsService, queryFriendsService } from "@/service/userService";
-import { getElInArrayIndex } from "@/utils";
-import { Message } from "@/typescript/standard";
 
 let socket = io("http://localhost:3000");
 let cookie = useCookies().get("USERINFO");
 let methods: any = {};
-let msgList = ref<Message[]>([]);
+let msgList = ref<IMessage[]>([]);
 let chatPanel = ref<any>(null);
 let configs = ref();
-let friends = ref<UserModel[]>([]);
-let groups = ref<GroupModel[]>([]);
-let buddyMessages = ref<Messages[]>();
+let friends = ref<IUser[]>([]);
+let groups = ref<IGroup[]>([]);
+let buddyMessages = ref<IMessage[]>();
 let content = ref<string>("");
-let pitchBuddy = ref<UserModel>({});
-let pitchGroup = ref<GroupModel>({});
+let pitchBuddy = ref<IUser>({});
+let pitchGroup = ref<IGroup>({});
 let nowType = ref<{ group?: boolean; friend?: boolean }>({ friend: true, group: false });
 
 const store = useBuddyMessagesStore();
 let { temporary } = storeToRefs(store);
-const { push } = store;
+const { push: storePush } = store;
 
 socket.on("connect", async () => {
   let reqs = await updateUserService({ socket_id: socket.id, id: cookie.id, is_online: 1 });
@@ -33,11 +33,15 @@ socket.on("connect", async () => {
   groups.value = reqs[1].data.data;
 });
 
+function updateBuddyMessages(message: IMessage, id: number) {
+  storePush(id, message);
+  let index = getIndexOfElInArr<ITemporaryMessage>(temporary.value, arr => arr.id === id);
+  buddyMessages.value = temporary.value[index].messages;
+}
+
 onMounted(() => {
   socket.on("echo-private", message => {
-    push(message.id, message);
-    let index = getElInArrayIndex<TemporaryMessages>(temporary.value, arr => arr.id === message.id);
-    buddyMessages.value = temporary.value[index].messages;
+    updateBuddyMessages(message, message.id);
     chatPanel.value.scrollTop = chatPanel.value.scrollHeight;
   });
 
@@ -51,9 +55,7 @@ onMounted(() => {
       let message = new Message(cookie.username, cookie.avatar, cookie.id, text, configs.value.popColor, "others", pitchBuddy.value.socket_id);
       socket.emit("emit-private", message);
       message.type = "self";
-      push(pitchBuddy.value.id, message);
-      let index = getElInArrayIndex<TemporaryMessages>(temporary.value, arr => arr.id === pitchBuddy.value.id);
-      buddyMessages.value = temporary.value[index].messages;
+      updateBuddyMessages(message, pitchBuddy.value.id!);
     } else {
       let message = new Message(cookie.username, cookie.avatar, cookie.id, text, configs.value.popColor, "others", pitchGroup.value.room_id);
       socket.emit("emit-public", message);
@@ -76,15 +78,15 @@ function reloadGroups() {
   });
 }
 
-function selectGroup(group: GroupModel) {
+function selectGroup(group: IGroup) {
   socket.emit("emit-join-public", { socket_id: socket.id, room_id: group.room_id });
   pitchGroup.value = group;
   nowType.value = { group: true, friend: false };
 }
 
-function selectFriend(user: UserModel) {
+function selectFriend(user: IUser) {
   pitchBuddy.value = user;
-  let index = getElInArrayIndex<TemporaryMessages>(temporary.value, arr => arr.id === user.id);
+  let index = getIndexOfElInArr<ITemporaryMessage>(temporary.value, arr => arr.id === user.id);
   if (index === -1) {
     buddyMessages.value = undefined;
     // 从数据库中查询，并复制给 buddy

@@ -1,41 +1,25 @@
-export interface GroupModel {
-  id?: number;
-  name?: string;
-  avatar?: string;
-  desc?: string;
-  created_date?: Date;
-  room_id?: string;
+import { IMessage } from "@/types";
+
+export class Message implements IMessage {
+  public username: string;
+  public avatar: string;
+  public id: number;
+  public text: string;
+  public popColor: string;
+  public type?: string;
+  public socket_id?: string;
+
+  constructor(username: string, avatar: string, id: number, text: string, popColor: string, type?: string, socket_id?: string) {
+    this.username = username;
+    this.avatar = avatar;
+    this.id = id;
+    this.text = text;
+    this.popColor = popColor;
+    this.type = type;
+    this.socket_id = socket_id;
+  }
 }
 
-export interface UserModel {
-  id?: number;
-  is_online?: number;
-  socket_id?: string;
-  username?: string;
-  password?: string;
-  phone?: string;
-  create_date?: Date;
-  birthday?: Date;
-  bg_img?: string;
-  avatar?: string;
-  thumb?: number;
-  signature?: string;
-  zodiac?: string;
-  constellation?: string;
-  sex?: string;
-}
-
-export interface TemporaryMessages {
-  id: number;
-  messages: Message[];
-}
-
-export interface Message {
-  username: string;
-  avatar: string;
-  id: string;
-  text: string;
+export interface ConfigMenusData {
   popColor: string;
-  type?: string;
-  socket_id?: string;
 }

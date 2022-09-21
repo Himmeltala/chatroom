@@ -17,11 +17,16 @@ export function findElInArray<T>(array: T[], reg: (v: T, i: number, o: T[]) => b
   return !!array.find(reg);
 }
 
-export function getElInArrayIndex<T>(arr: T[], reg: (arr: T) => boolean): number {
+/**
+ * 获取与 match 匹配的元素在数组的索引。
+ * 
+ * @param arr 源数组
+ * @param match match 回调回传每轮循环的元素，arr[i].id == 1000，即查询元素中 id 字段等于 1000 的元素索引是多少。
+ * @returns 匹配失败返回 -1，否则返回 index。
+ */
+export function getIndexOfElInArr<T>(arr: T[], match: (arr: T) => boolean): number {
   let index = -1;
-  if (arr.length === 0) index = -1;
-  else {
-    for (let i = 0; i < arr.length; i++) if (reg(arr[i])) index = i;
-  }
+  if (arr.length == 0) index = -1;
+  else for (let i = 0; i < arr.length; i++) if (match(arr[i])) index = i;
   return index;
 }
