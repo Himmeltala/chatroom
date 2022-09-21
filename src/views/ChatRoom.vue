@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useCookies } from "@vueuse/integrations/useCookies";
-import { useBuddyMessagesStore } from "@/pinia/stores";
 import { storeToRefs } from "pinia";
 import { io } from "socket.io-client";
+import { usePrivateMessagesStore } from "@/pinia/stores";
 import { IUser, IGroup, IMessage, ITemporaryMessage } from "@/types";
 import { Message } from "@/models";
 import { getIndexOfElInArr } from "@/utils";
-import { updateUserService, queryGroupsService, queryFriendsService } from "@/service/userService";
+import { queryListPanelService, queryGroupsService, queryFriendsService } from "@/service/userService";
 
 let socket = io("http://localhost:3000");
 let cookie = useCookies().get("USERINFO");
@@ -17,31 +17,51 @@ let chatPanel = ref<any>(null);
 let configs = ref();
 let friends = ref<IUser[]>([]);
 let groups = ref<IGroup[]>([]);
-let buddyMessages = ref<IMessage[]>();
+let privateMessages = ref<IMessage[]>();
+let publicMessages = ref<IMessage[]>();
 let content = ref<string>("");
 let pitchBuddy = ref<IUser>({});
 let pitchGroup = ref<IGroup>({});
 let nowType = ref<{ group?: boolean; friend?: boolean }>({ friend: true, group: false });
 
-const store = useBuddyMessagesStore();
-let { temporary } = storeToRefs(store);
-const { push: storePush } = store;
+const privateStore = usePrivateMessagesStore();
+let { privateTempMessages } = storeToRefs(privateStore);
+const { pushPrivateMessageToStore } = privateStore;
 
 socket.on("connect", async () => {
-  let reqs = await updateUserService({ socket_id: socket.id, id: cookie.id, is_online: 1 });
+  let reqs = await queryListPanelService({ socket_id: socket.id, id: cookie.id, is_online: 1 });
   friends.value = reqs[0].data.data;
   groups.value = reqs[1].data.data;
 });
 
-function updateBuddyMessages(message: IMessage, id: number) {
-  storePush(id, message);
-  let index = getIndexOfElInArr<ITemporaryMessage>(temporary.value, arr => arr.id === id);
-  buddyMessages.value = temporary.value[index].messages;
+/**
+ * 更新私密消息列表
+ * @param message 消息类实体
+ * @param id 好友 ID
+ */
+function updatePrivateMessages(message: IMessage, id: number) {
+  pushPrivateMessageToStore(id, message);
+  let index = getIndexOfElInArr<ITemporaryMessage>(privateTempMessages.value, arr => arr.id === id);
+  privateMessages.value = privateTempMessages.value[index].messages;
+}
+
+/**
+ * 更新群聊消息列表
+ * @param message 消息类实体
+ * @param id 群 ID
+ */
+function updatePublicMessages(message: IMessage, id: number) {}
+
+function sendMessage(label: string, text: string, sid: string, type: string, clb?: (res: IMessage) => void) {
+  let message = new Message(cookie.username, cookie.avatar, cookie.id, text, configs.value.popColor, "others", sid);
+  socket.emit(label, message);
+  message.type = type;
+  clb && clb(message);
 }
 
 onMounted(() => {
   socket.on("echo-private", message => {
-    updateBuddyMessages(message, message.id);
+    updatePrivateMessages(message, message.id);
     chatPanel.value.scrollTop = chatPanel.value.scrollHeight;
   });
 
@@ -52,15 +72,13 @@ onMounted(() => {
 
   methods.sendText = (text: string) => {
     if (nowType.value.friend) {
-      let message = new Message(cookie.username, cookie.avatar, cookie.id, text, configs.value.popColor, "others", pitchBuddy.value.socket_id);
-      socket.emit("emit-private", message);
-      message.type = "self";
-      updateBuddyMessages(message, pitchBuddy.value.id!);
+      sendMessage("emit-private", text, pitchBuddy.value.socket_id!, "self", message => {
+        updatePrivateMessages(message, pitchBuddy.value.id!);
+      });
     } else {
-      let message = new Message(cookie.username, cookie.avatar, cookie.id, text, configs.value.popColor, "others", pitchGroup.value.room_id);
-      socket.emit("emit-public", message);
-      message.type = "self";
-      msgList.value.push(message);
+      sendMessage("emit-public", text, pitchGroup.value.room_id!, "self", message => {
+        updatePublicMessages(message, pitchGroup.value.id!);
+      });
     }
     chatPanel.value.scrollTop = chatPanel.value.scrollHeight;
   };
@@ -86,11 +104,11 @@ function selectGroup(group: IGroup) {
 
 function selectFriend(user: IUser) {
   pitchBuddy.value = user;
-  let index = getIndexOfElInArr<ITemporaryMessage>(temporary.value, arr => arr.id === user.id);
+  let index = getIndexOfElInArr<ITemporaryMessage>(privateTempMessages.value, arr => arr.id === user.id);
   if (index === -1) {
-    buddyMessages.value = undefined;
+    privateMessages.value = undefined;
     // 从数据库中查询，并复制给 buddy
-  } else buddyMessages.value = temporary.value[index].messages;
+  } else privateMessages.value = privateTempMessages.value[index].messages;
   nowType.value = { group: false, friend: true };
 }
 </script>
@@ -119,8 +137,8 @@ function selectFriend(user: IUser) {
           </div>
         </template>
         <div class="msg-list" ref="chatPanel">
-          <template v-if="buddyMessages">
-            <div class="msg-item" :class="message.type" v-for="(message, key) in buddyMessages" :key="key">
+          <template v-if="privateMessages">
+            <div class="msg-item" :class="message.type" v-for="(message, key) in privateMessages" :key="key">
               <template v-if="message.type === 'self'">
                 <div class="left">
                   <template v-if="nowType.group">

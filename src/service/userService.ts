@@ -24,7 +24,7 @@ export async function checkUserService(user: IUser): Promise<boolean> {
   return passport;
 }
 
-export async function updateUserService(data: IUser) {
+export async function queryListPanelService(data: IUser) {
   await request({ method: "post", url: "/update/user", data });
   let reqs = await request.all([request({ method: "post", url: "/query/friends", data: { id: data.id } }), request({ method: "post", url: "/query/groups", data: { id: data.id } })]);
   return reqs;
