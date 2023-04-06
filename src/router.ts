@@ -1,5 +1,17 @@
 import { createRouter, createWebHashHistory } from "vue-router";
-import { checkCookie } from "../utils";
+
+interface normalizeCookieReturn {
+  cookie?: any;
+  isDefined: boolean;
+}
+
+export function checkCookie(name: string): normalizeCookieReturn {
+  let cookieData = <normalizeCookieReturn>{};
+  let localCookies = useCookies().get(name);
+  cookieData.isDefined = !!localCookies;
+  if (cookieData.isDefined) localCookies.cookie = localCookies;
+  return cookieData;
+}
 
 const routes = [
   {
@@ -41,4 +53,4 @@ router.beforeEach((to, from, next) => {
   }
 });
 
-export { router };
+export default router;

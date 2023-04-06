@@ -1,6 +1,4 @@
 import { request } from "@/utils/request";
-import { ElMessage } from "element-plus";
-import { IUser } from "@/types";
 
 function checkFormat(user: IUser) {
   let u = /^[a-zA-Z0-9]{2,14}$/;

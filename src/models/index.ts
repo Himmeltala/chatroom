@@ -1,5 +1,3 @@
-import { IMessage } from "@/types";
-
 export class Message implements IMessage {
   // 用户名
   public username: string;

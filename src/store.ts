@@ -1,6 +1,3 @@
-import { defineStore } from "pinia";
-import { ref } from "vue";
-import { ITemporaryMessage, IMessage } from "@/types";
 import { getIndexOfElInArr } from "@/utils";
 
 function pushMessageToStore(tempMessage: ITemporaryMessage[], message: IMessage, id: any) {

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ref } from "vue";
-
 defineProps({
   height: {
     type: String,
@@ -17,7 +15,7 @@ const emits = defineEmits<{
   (e: "onTextChanged", text: string): void;
 }>();
 
-let text = ref("");
+const text = ref("");
 
 function textChange(event: any) {
   text.value = event.target.innerText;

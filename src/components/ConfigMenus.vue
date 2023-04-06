@@ -1,33 +1,34 @@
 <script setup lang="ts">
-import { watch, reactive } from "vue";
 import { ConfigMenusData } from "@/models";
 
-const resets = ["#009688", "#1E9FFF", "#FFB800", "#FF5722", "#5FB878"];
-let configs = reactive({
-  popColor: "#E9ECED"
+const props = defineProps({
+  width: {
+    type: String,
+    default: "20%"
+  },
+  configs: {
+    type: Object as PropType<{
+      popColor: string;
+    }>,
+    required: true
+  }
 });
 
 const emits = defineEmits<{
-  (e: "onChange", value: ConfigMenusData): void;
-  (e: "onInit", value: ConfigMenusData): void;
+  (e: "update:configs", value: ConfigMenusData): void;
 }>();
 
+const resets = ["#009688", "#1E9FFF", "#FFB800", "#FF5722", "#5FB878"];
+
 watch(
-  () => configs,
+  () => props.configs,
   value => {
-    emits("onChange", value);
+    emits("update:configs", value);
   },
   { deep: true }
 );
 
-emits("onInit", configs);
-
-defineProps({
-  width: {
-    type: String,
-    default: "20%"
-  }
-});
+emits("update:configs", props.configs);
 </script>
 
 <template>

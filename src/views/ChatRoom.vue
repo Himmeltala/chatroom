@@ -1,34 +1,32 @@
 <script setup lang="ts">
 import { Message } from "@/models";
-import { usePrivateMessagesStore, usePublicMessagesStore } from "@/pinia/stores";
-import { queryFriendsService, queryGroupsService, queryFriendAndGroupService } from "@/service/userService";
-import { IGroup, IMessage, ITemporaryMessage, IUser } from "@/types";
-import { getIndexOfElInArr } from "@/utils";
-import { useCookies } from "@vueuse/integrations/useCookies";
-import { storeToRefs } from "pinia";
 import { io } from "socket.io-client";
-import { onMounted, ref } from "vue";
+import { getIndexOfElInArr } from "@/utils";
+import { usePrivateMessagesStore, usePublicMessagesStore } from "@/store";
+import { queryFriendsService, queryGroupsService, queryFriendAndGroupService } from "@/service/userService";
 
 let socket = io("http://localhost:3000");
 let cookie = useCookies().get("USERINFO");
 let methods: any = {};
-let chatPanel = ref<any>(null);
-let configs = ref();
-let friends = ref<IUser[]>([]);
-let groups = ref<IGroup[]>([]);
-let privateMessages = ref<IMessage[]>();
-let publicMessages = ref<IMessage[]>();
-let content = ref<string>("");
-let clickUser = ref<IUser>({});
-let clickGroup = ref<IGroup>({});
-let chatType = ref<string>("private");
+const chatPanel = ref<any>();
+const configs = ref({
+  popColor: "#E9ECED"
+});
+const friends = ref<IUser[]>([]);
+const groups = ref<IGroup[]>([]);
+const privateMessages = ref<IMessage[]>();
+const publicMessages = ref<IMessage[]>();
+const content = ref<string>("");
+const clickUser = ref<IUser>({});
+const clickGroup = ref<IGroup>({});
+const chatType = ref<string>("private");
 
 const privateStore = usePrivateMessagesStore();
-let { privateTempMessages } = storeToRefs(privateStore);
+const { privateTempMessages } = storeToRefs(privateStore);
 const { pushPrivateMessageToStore } = privateStore;
 
 const publicStore = usePublicMessagesStore();
-let { publicTempMessages } = storeToRefs(publicStore);
+const { publicTempMessages } = storeToRefs(publicStore);
 const { pushPublicMessageToStore } = publicStore;
 
 /**
@@ -48,7 +46,7 @@ socket.on("connect", async () => {
  */
 function updatePrivateMessages(message: IMessage, id: number) {
   pushPrivateMessageToStore(id, message);
-  let index = getIndexOfElInArr<ITemporaryMessage>(privateTempMessages.value, arr => arr.id === id);
+  const index = getIndexOfElInArr<ITemporaryMessage>(privateTempMessages.value, arr => arr.id === id);
   privateMessages.value = privateTempMessages.value[index].messages;
 }
 
@@ -60,7 +58,7 @@ function updatePrivateMessages(message: IMessage, id: number) {
  */
 function updatePublicMessages(message: IMessage, id: number) {
   pushPublicMessageToStore(id, message);
-  let index = getIndexOfElInArr<ITemporaryMessage>(publicTempMessages.value, arr => arr.id === id);
+  const index = getIndexOfElInArr<ITemporaryMessage>(publicTempMessages.value, arr => arr.id === id);
   publicMessages.value = publicTempMessages.value[index].messages;
 }
 
@@ -73,7 +71,7 @@ function updatePublicMessages(message: IMessage, id: number) {
  * socket 监听其他人发送的消息，再调用全局状态存储函数
  */
 function sendMessage(label: string, text: string, skid: string, calb?: (res: IMessage) => void) {
-  let message = new Message(cookie.username, cookie.avatar, cookie.id, text, configs.value.popColor, "others", skid);
+  const message = new Message(cookie.username, cookie.avatar, cookie.id, text, configs.value.popColor, "others", skid);
   socket.emit(label, message);
   message.type = "self";
   calb && calb(message);
@@ -105,19 +103,19 @@ onMounted(() => {
 });
 
 async function reloadFriends() {
-  let response = await queryFriendsService({ id: cookie.id });
+  const response = await queryFriendsService({ id: cookie.id });
   friends.value = response.data.data;
 }
 
 async function reloadGroups() {
-  let response = await queryGroupsService({ id: cookie.id });
+  const response = await queryGroupsService({ id: cookie.id });
   groups.value = response.data.data;
 }
 
 function selectGroup(group: IGroup) {
   socket.emit("emit-join-public", { socket_id: socket.id, room_id: group.room_id });
   clickGroup.value = group;
-  let index = getIndexOfElInArr<ITemporaryMessage>(publicTempMessages.value, arr => arr.id === group.id);
+  const index = getIndexOfElInArr<ITemporaryMessage>(publicTempMessages.value, arr => arr.id === group.id);
   if (index === -1) {
     publicMessages.value = undefined;
   } else publicMessages.value = publicTempMessages.value[index].messages;
@@ -126,7 +124,7 @@ function selectGroup(group: IGroup) {
 
 function selectUser(user: IUser) {
   clickUser.value = user;
-  let index = getIndexOfElInArr<ITemporaryMessage>(privateTempMessages.value, arr => arr.id === user.id);
+  const index = getIndexOfElInArr<ITemporaryMessage>(privateTempMessages.value, arr => arr.id === user.id);
   if (index === -1) {
     privateMessages.value = undefined;
     // 1. 查询数据
@@ -138,7 +136,7 @@ function selectUser(user: IUser) {
 <template>
   <div class="chatroom">
     <div class="wrapper">
-      <ConfigMenus @on-change="(e: any) => (configs = e)" @on-init="(e: any) => (configs = e)" />
+      <ConfigMenus v-model:configs="configs" />
       <div class="content">
         <!-- chat panel start -->
         <template v-if="chatType === 'private'">

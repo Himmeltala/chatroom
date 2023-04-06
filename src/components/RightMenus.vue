@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { IUser, IGroup } from "@/types";
-
 defineProps({
   friends: {
-    type: Array<IUser>
+    type: Object as PropType<IUser[]>,
+    required: true
   },
   groups: {
-    type: Array<IGroup>
+    type: Object as PropType<IGroup[]>,
+    required: true
   },
   width: {
     type: String,

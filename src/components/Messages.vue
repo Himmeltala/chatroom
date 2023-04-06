@@ -1,3 +1,21 @@
+<script lang="ts" setup>
+defineProps({
+  data: {
+    type: Object as PropType<IMessage[]>
+  },
+  defineType: {
+    validator(value: string) {
+      return ["public", "private"].includes(value);
+    }
+  },
+  type: {
+    validator(value: string) {
+      return ["public", "private"].includes(value);
+    }
+  }
+});
+</script>
+
 <template>
   <div class="messages">
     <template v-if="data">
@@ -20,26 +38,6 @@
     </template>
   </div>
 </template>
-
-<script lang="ts" setup>
-import { IMessage } from "@/types";
-
-defineProps({
-  data: {
-    type: Array<IMessage>
-  },
-  defineType: {
-    validator(value: string) {
-      return ["public", "private"].includes(value);
-    }
-  },
-  type: {
-    validator(value: string) {
-      return ["public", "private"].includes(value);
-    }
-  }
-});
-</script>
 
 <style lang="scss" scoped>
 .messages {

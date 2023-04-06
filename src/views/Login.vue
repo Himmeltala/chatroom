@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import { checkUserService } from "@/service/userService";
-import { useRouter } from "vue-router";
 
-let user = ref({ username: "", password: "" });
+const user = ref({ username: "", password: "" });
 const router = useRouter();
 
 async function login() {

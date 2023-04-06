@@ -1,18 +1,3 @@
-import { useCookies } from "@vueuse/integrations/useCookies";
-
-interface normalizeCookieReturn {
-  cookie?: any;
-  isDefined: boolean;
-}
-
-export function checkCookie(name: string): normalizeCookieReturn {
-  let cookieData = <normalizeCookieReturn>{};
-  let localCookies = useCookies().get(name);
-  cookieData.isDefined = !!localCookies;
-  if (cookieData.isDefined) localCookies.cookie = localCookies;
-  return cookieData;
-}
-
 /**
  * 获取与 match 匹配的元素在数组的索引。
  *

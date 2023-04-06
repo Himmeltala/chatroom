@@ -1,4 +1,4 @@
-export interface IGroup {
+declare interface IGroup {
   id?: number;
   name?: string;
   avatar?: string;
@@ -7,7 +7,7 @@ export interface IGroup {
   room_id?: string;
 }
 
-export interface IUser {
+declare interface IUser {
   id?: number;
   is_online?: number;
   socket_id?: string;
@@ -25,7 +25,7 @@ export interface IUser {
   sex?: string;
 }
 
-export interface IMessage {
+declare interface IMessage {
   username: string;
   avatar: string;
   id: number;
@@ -34,7 +34,8 @@ export interface IMessage {
   type?: string;
   socket_id?: string;
 }
-export interface ITemporaryMessage {
+
+declare interface ITemporaryMessage {
   id: number;
   messages: IMessage[];
 }
